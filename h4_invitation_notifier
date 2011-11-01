@@ -1,0 +1,60 @@
+#!/usr/bin/env python
+# coding=utf8
+
+#
+# 發送聚會通告
+#
+# Author: 幸延 <a0726h77@gmail.com>, Chun-Yu Lee (Mat) <matlinuxer2@gmail.com>
+# Copyright: 幸延 <a0726h77@gmail.com> || Chun-Yu Lee (Mat) <matlinuxer2@gmail.com>
+# License: MIT
+#
+import common
+
+common.read_settings_from_file()
+
+PartyDate = common.thisThursday()
+
+
+username=common.volatile_settings['username']
+password=common.volatile_settings['password']
+Sender=common.volatile_settings['who'] # 值日生的 email
+Reciver=common.volatile_settings['email_address']
+Subject="HackingThursday 固定聚會 -- 中繼場地 ("+PartyDate+")"
+MailContent = common.mail_content
+MailContentSignature = common.mail_content_signature
+MailContentOtherLink = common.mail_content_other_link
+
+
+Html="""
+<html>
+  <head>
+    <title>HackingThursday</title>
+  </head>
+  <body>
+    <pre>
+      """+ MailContent +"""
+    </pre>
+    
+    <hr/>
+    
+    <pre>
+      """+ MailContentSignature +"""
+    </pre>
+    
+    <hr/>
+    
+    <pre>
+      """+ MailContentOtherLink +"""
+    </pre>
+  </body>
+</html>
+"""
+
+
+Txt = common.html2txt( Html )
+
+if __name__ == "__main__":
+    receivers = Reciver.split(',')
+    for item in receivers:
+        receiver = item.strip()	
+        common.send_gmail( Sender, receiver, Subject, Txt, Html, username, password )
