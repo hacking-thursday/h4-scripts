@@ -57,7 +57,7 @@ def send_gmail( sender, recipient, subject, text, html, username, passwd ):
    msg['To'] = recipient 
 
    msg.attach( MIMEText(text,"plain", "utf-8") )
-   msg.attach( MIMEText(html,"html") )
+   msg.attach( MIMEText(html,"html", "utf-8") )
 
    mailServer = smtplib.SMTP("smtp.gmail.com", 587)
    mailServer.ehlo()
@@ -129,33 +129,21 @@ def read_settings_from_file():
 ##################
 
 mail_content = '''
-
 這次聚會和上週一樣是在 MarketPlace。
 
 詳細資訊如下:
 
-===============================================================================
-
 場地: MarketPlace 
 時間: 週四晚上 19:30 至 22:00
-地址: 台北市重慶南路一段1號2樓 
-( 忠孝西路與重慶南路交口的 7-11 樓上, 近台北車站 )
+地址: 台北市重慶南路一段1號2樓 ( 忠孝西路與重慶南路交口的 7-11 樓上, 近台北車站 )
+ Map: http://goo.gl/8jmBY
 
 店家有提供無線上網，電源，營業時間至 22:00 。
-低消為1杯飲料，飲料約 100-140 元，輕食加飲料約 190-230 元。
-
-*** 17:00 - 18:00 店家有129元價位的餐點(含飲料)，時間彈性的人可以提前用餐 ***
-
-http://maps.google.com.tw/maps?q=%E5%8F%B0%E5%8C%97%E5%B8%82%E9%87%8D%E6%85%B6%E5%8D%97%E8%B7%AF%E4%B8%80%E6%AE%B51%E8%99%9F2%E6%A8%93&hl=zh-TW&ie=UTF8&hnear=100%E5%8F%B0%E5%8C%97%E5%B8%82%E4%B8%AD%E6%AD%A3%E5%8D%80%E9%87%8D%E6%85%B6%E5%8D%97%E8%B7%AF%E4%B8%80%E6%AE%B51%E8%99%9F&t=m&z=16&vpsrc=6&brcurrent=3,0x3442a8de05b73b09:0x64e4cd4874161dde,0,0x345d5538b0b6645f:0x5aa90dfa6620edc0
-
-===============================================================================
+低消為1杯飲料，飲料約 100-140 元，輕食加飲料約 190-250 元。
+>>店家有129元價位的簡餐(含飲料)，但限時17:00-18:00點餐，時間彈性的人可以提前前往用餐<<
 
 如果您在前來的過程中，有任何問題，歡迎隨時聯絡我們。
-
-或是填下列問卷，協助我們了解你的聯絡方式:
-
-https://docs.google.com/spreadsheet/viewform?hl=zh_TW&formkey=dHlNaFRKUTdnWWZZNVdxQWNRalRuX3c6MQ#gid=0
-
+或是填下列問卷，協助我們了解你的聯絡方式: http://goo.gl/FCV8f
 '''
 
 mail_content_header='''
