@@ -1,0 +1,92 @@
+#!/usr/bin/env python
+# coding=utf8
+
+#
+# 發送聚會聚會手記
+#
+# Author: Chun-Yu Lee (Mat) <matlinuxer2@gmail.com>
+# Copyright: Chun-Yu Lee (Mat) <matlinuxer2@gmail.com>
+# License: MIT
+#
+
+import common
+import tempfile
+import os
+import libxml2
+import StringIO
+
+common.read_settings_from_file()
+
+PartyDate = common.thisThursday()
+
+username=common.volatile_settings['username']
+password=common.volatile_settings['password']
+Sender=common.volatile_settings['who'] # 值日生的 email
+Reciver=common.volatile_settings['email_address']
+Subject="HackingThursday 聚會手記 ("+PartyDate+")"
+WikidotNoteURL="http://hackingthursday.wikidot.com/"+PartyDate
+
+MailContent          = common.mail_content
+MailContentHeader    = common.mail_content_header
+MailContentFooter    = common.mail_content_footer
+MailContentSignature = common.mail_content_signature
+MailContentOtherLink = common.mail_content_other_link
+
+
+def get_wikidot_content_body( URL ):
+    xmlfile  = tempfile.mktemp()
+    htmlfile = tempfile.mktemp()
+
+    os.system( "wget -O "+htmlfile+" "+URL )
+    the_html = common.file2string( htmlfile )
+    os.system( "rm "+ htmlfile )
+
+    the_xml = common.html2xml( the_html )
+    common.string2file( the_xml, xmlfile )
+    doc = libxml2.parseFile( xmlfile )
+
+    ctxt = doc.xpathNewContext()
+    ctxt.xpathRegisterNs('xhtml', 'http://www.w3.org/1999/xhtml')
+    rows = ctxt.xpathEval('//xhtml:div[@id="page-content"]')
+    ctxt.xpathFreeContext()
+
+    f = StringIO.StringIO()
+    buf = libxml2.createOutputBuffer(f, 'UTF-8')
+    rows[0].docSetRootElement( doc )
+    doc.saveFileTo(buf, 'UTF-8')
+    
+    os.system( "rm " + xmlfile )
+    result = f.getvalue()
+
+    return result
+
+
+the_content_html = get_wikidot_content_body( WikidotNoteURL )
+
+
+Html = """
+<html>
+    <head>
+        <title>HackingThursday</title>
+    </head>
+    <body>
+    <pre>"""+MailContentHeader+"""</pre>
+    
+    <a>"""+WikidotNoteURL+"""</a>
+
+    <hr/>
+    """+the_content_html+"""
+    <hr/>
+    
+    <pre>"""+MailContentFooter+"""</pre>
+    </body>
+</html>
+"""
+
+Txt = common.html2txt( Html )
+
+if __name__ == "__main__":
+    receivers = Reciver.split(',')
+    for item in receivers:
+        receiver = item.strip()	
+	common.send_gmail( Sender, receiver, Subject, Txt, Html, username, password )

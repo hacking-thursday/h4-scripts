@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+
+# Author: Chun-Yu Lee (Mat) <matlinuxer2@gmail.com>
+# Copyright: Chun-Yu Lee (Mat) <matlinuxer2@gmail.com>
+# License: MIT License
+
+# ==== Configure ====
+DIR=`dirname $0`
+
+test -d $DIR/tmp || mkdir $DIR/tmp
+
+ConfigFile="$DIR/.esmtprc"
+LogFile="$DIR/.esmtplog"
+PrevFile="$DIR/tmp/pad.prev"
+NewFile="$DIR/tmp/pad.latest"
+
+Sender="matlinuxer2@gmail.com"
+Reciver="matlinuxer2@gmail.com>,<a0726h77@gmail.com"
+
+Subject="EtherPad of HackingThursday have changes..."
+# ==== Configure ====
+
+test -f $PrevFile || wget -q -O $PrevFile http://pad.ubuntu-uk.org/ep/pad/view/h4/latest
+
+wget -q -O $NewFile http://pad.ubuntu-uk.org/ep/pad/view/h4/latest
+
+lastest_datetime=$( cat $NewFile | egrep '<div id="timer">(.*)</div>' | sed -e 's/<div id="timer">\(.*\)<\/div>/\1/g')
+prev_datetime=$(cat $PrevFile | egrep '<div id="timer">(.*)</div>' | sed -e 's/<div id="timer">\(.*\)<\/div>/\1/g')
+
+echo "lastest_time: $lastest_datetime"
+echo "prev_time: $prev_datetime"
+
+lastest_date=`echo $lastest_datetime | awk '{print $1}'`
+lastest_time=`echo $lastest_datetime | awk '{print $2}'`
+lastest_mon=`echo $lastest_date | awk -F '/' '{print $1}'`
+lastest_day=`echo $lastest_date | awk -F '/' '{print $2}'`
+lastest_year=`echo $lastest_date | awk -F '/' '{print $3}'`
+lastest_hour=`echo $lastest_time | awk -F ':' '{print $1}'`
+lastest_min=`echo $lastest_time | awk -F ':' '{print $2}'`
+lastest_sec=`echo $lastest_time | awk -F ':' '{print $3}'`
+
+prev_date=`echo $prev_datetime | awk '{print $1}'`
+prev_time=`echo $prev_datetime | awk '{print $2}'`
+prev_mon=`echo $prev_date | awk -F '/' '{print $1}'`
+prev_day=`echo $prev_date | awk -F '/' '{print $2}'`
+prev_year=`echo $prev_date | awk -F '/' '{print $3}'`
+prev_hour=`echo $prev_time | awk -F ':' '{print $1}'`
+prev_min=`echo $prev_time | awk -F ':' '{print $2}'`
+prev_sec=`echo $prev_time | awk -F ':' '{print $3}'`
+
+
+result=$(python << EOF
+
+from datetime import datetime, date, time
+import math
+
+d1 = date($prev_year, $prev_mon, $prev_day)
+t1 = time(int("$prev_hour"), int("$prev_min"), int("$prev_sec"))
+
+d2 = date($lastest_year, $lastest_mon, $lastest_day)
+t2 = time(int("$lastest_hour"), int("$lastest_min"), int("$lastest_sec"))
+
+if datetime.combine(d1, t1) < datetime.combine(d2, t2):
+    print 'true'
+else:
+	print 'false'
+
+EOF
+)
+
+message(){
+cat << EOF
+From: <$Sender>
+To: <$Reciver>
+Subject: $Subject
+MIME-Version: 1.0
+Content-Type: text/html;charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+<head>
+<title>HackingThursday</title>
+</head>
+<body>
+EOF
+
+#echo "<pre>"
+#diff $PrevFile $NewFile
+#echo "</pre>"
+#echo "<hr/>"
+
+echo "http://pad.ubuntu-uk.org/h4"
+
+echo "</body>"
+echo "</html>"
+
+}
+
+if [ $result == "true" ]; then
+   cp $NewFile $PrevFile
+    message | esmtp -C $ConfigFile -X $LogFile -- $Reciver
+fi
+

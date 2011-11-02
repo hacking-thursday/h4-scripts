@@ -1,0 +1,273 @@
+#!/usr/bin/env python
+# coding:utf-8
+
+#
+# 將聚會手記作後製整理
+#
+# Author: Chun-Yu Lee (Mat) <matlinuxer2@gmail.com>
+# Copyright: Chun-Yu Lee (Mat) <matlinuxer2@gmail.com>
+# License: MIT
+#
+
+import datetime
+from xmlrpclib import ServerProxy
+from common import *
+import re
+import urllib
+
+
+#
+# 程式參數
+#
+read_settings_from_file()
+api_user = volatile_settings['wikidot_api_user']
+api_key = volatile_settings['wikidot_api_key']
+site = 'hackingthursday'
+
+#
+# 程式資料結構
+#
+proxy = ServerProxy('https://'+api_user+':'+api_key+'@www.wikidot.com/xml-rpc-api.php')
+
+selecte_pages = []
+collection = []
+author_alias = {
+	"ca": "CA",
+	"ben": "Ben",
+	"4$": "fourdollars",
+	"$4": "fourdollars",
+	"聖博" : "shengpo",
+	"aki.k" : "Aki.K",
+	"aki" : "Aki",
+	"ShengPo" : "shengpo",
+	"Sheng-po" : "shengpo",
+	"Sheng-Po" : "shengpo",
+	"Tsung" : "tsung",
+	"Clydewu" : "clyde",
+	"ClydeWu" : "clyde",
+	"blue119" : "ypwang",
+	"DUCATI" : "ducati",
+	"honkia" : "honki",
+	"Honki" : "honki",
+	"Honkia" : "honki",
+	"Yuren" : "yurenju",
+	"yuren" : "yurenju",
+	"YurenJu" : "yurenju",
+	"huebuer" : "gittrac",
+	"chihchun" : "rex",
+	"小迪克" : "nctusdk",
+	"魏藥" : "yaowei",
+	"Alex Lin" : "alex-lin",
+}
+
+formal_name = {
+	"fourdollars" : "四塊錢",
+	"shengpo" : "聖博",
+	"mat" : "Mat",
+	"rex" : "Rex",
+	"tsung" : "Tsung",
+	"clyde" : "克勞德",
+	"lcamel" : "LCamel",
+	"thinker" : "Thinker",
+	"cih" : "CIH",
+	"nctusdk" : "小迪克",
+	"yaowei" : "魏藥",
+	"alex-lin" : "Alex Lin",
+	"layla" : "Layla",
+	"mark" : "Mark",
+	"max" : "Max",
+}
+
+#
+# 程式資料結構
+#
+def append_data_per_author( author, date, data ):
+	global collection
+
+	# 這裡作一次作者名稱的查表代換
+	if author in author_alias.keys():
+		alias = author_alias[ author ]
+		print "[%s] => [%s]" % ( author, alias )
+		author = alias
+
+	# 將英文名稱轉小寫
+	author = author.lower()
+
+	# 在加入之前，要先將 author 的內容 normalize 過
+	collection += [( author, date, data )]
+
+def parse_data_from_page( page ):
+	the_page = proxy.pages.get_one({"site":site,"page":page})
+	content = the_page["content"].encode('utf8')
+	content_rows = content.split("\n")
+
+	list=[]
+
+	for i in range(0, content_rows.__len__() ):
+	        line = content_rows[i] 
+		#print i,": ", line	
+		result = re.findall( '^\+(.*):$', line)
+		if result.__len__() > 0:
+			itemsline = result[0].strip()
+			items = itemsline.split(',')
+			for item in items:
+				author = item.strip()
+				#print "found >>> ", author
+				list += [( author, i )]
+
+	#print list
+	for i in range( 0, list.__len__() ):
+		data = []
+		if i+1 == list.__len__():
+			for j in range( list[i][1]+1, content_rows.__len__() ):
+				data += [ content_rows[j] ]
+		else: 
+			for j in range( list[i][1]+1, list[i+1][1] ):
+				data += [ content_rows[j] ]
+
+		append_data_per_author( list[i][0], page, data )
+
+
+
+def list_authors():
+	result = []
+	for item in collection:
+		if item[0] in result:
+			continue
+		else:
+			result += [ item[0] ]
+	
+	return result
+
+def make_index_of_authors():
+	result = """
+* [# H4ckers]
+"""
+	authors = list_authors()
+
+	en_char = "abcdefghijklmnopqrstuvwxyz"
+	data_dict = {
+		"abcd": [],
+		"efgh" : [],
+		"ijkl" : [],
+		"mnop" : [],
+		"qrst" : [],
+		"uvwx" : [],
+		"yz" : [],
+	}
+	data_dict_nonen = []
+
+	en_keys = data_dict.keys()
+	en_keys.sort() # 這裡作一次排序，以避免字母順序錯誤
+
+	for author in authors:
+		isNonEn = True
+		for key in en_keys:
+			if author[0].lower() in key and not author in data_dict[key]:
+					data_dict[key] += [author]
+					isNonEn = False
+		if isNonEn:
+			data_dict_nonen += [author]
+
+
+	for key in en_keys:
+		result += """ * [# 字母%s-%s]
+""" % ( key[:1].upper(), key[-1:].upper() )
+		items = data_dict[key]
+		items.sort() # 這裡作一次排序
+		for item in items:
+			name = item
+
+			# 這裡將作者名稱再轉成更個人化一些
+			if item in formal_name.keys():
+				name = formal_name[item]
+
+			if name.lower() != item:
+				name = name + " (%s)"%(item)
+
+			result += "  * [[[user:"+ item + "|" + name + "]]]\n"
+
+	# 目前 wikidot 不支援中文條目
+	result += """ * [# 非英文字母]
+  * [[[user:non-en]]]
+""" 
+
+	for item in data_dict_nonen:
+		print "非英文項目: ",item
+
+	return result
+
+
+
+def process_page_per_author( author ):
+	page_content = """
+[[toc]]
+"""
+
+	for cc in collection:
+		name = cc[0]
+		date = cc[1]
+		rows = cc[2]
+		if name.lower() == author.lower() :
+			page_content += "\n+ " + date + "\n"
+			page_content += "來源: [[[" + date + "]]]\n"
+			for row in rows:
+				page_content += row + "\n"
+
+	return page_content
+
+
+#
+# Main routine below
+#
+
+
+# 列出要處理的頁面
+all_pages = proxy.pages.select({'site' : site})
+for page in all_pages:
+	if page[0:2] == "20" and page[4] == "-" and page[7] == "-":
+		selecte_pages += [ page ]
+
+selecte_pages.sort( reverse=True ) # 將最新日期放在最前面
+for page in selecte_pages:
+	print "處理頁面: ", page
+	parse_data_from_page(page)
+    
+
+# 更新個別作者的頁面
+authors = list_authors()
+for author in authors:
+	page_of_author = process_page_per_author( author )	
+	page = "user:"+author.lower()
+
+	name = author
+	if name in formal_name.keys():
+		name = formal_name[name]
+
+	title = name + "的聚會手記"
+
+	print "To view: http://www.hackingthursday.org/%s" % page
+	proxy.pages.save_one({'site' : site, 'page' : page, 'title' : title, 'content' : page_of_author })
+
+# 展開作者列表
+page_of_index = make_index_of_authors()
+print page_of_index	
+
+# 將作者列表塞到主選單中
+nav_page = "nav:top"
+keyword_beg = "\n* [# H4ckers]\n"
+keyword_end = "\n  * [[[user:non-en]]]\n"
+
+nav_top_page = proxy.pages.get_one({"site":site,"page":nav_page})
+nav_top_content = nav_top_page["content"].encode('utf8')
+k_start = nav_top_content.find( keyword_beg )
+k_end = nav_top_content.find( keyword_end )
+
+if k_start >= 0 and k_end >= 0 and k_end > k_start :
+    k_end = k_end + keyword_end.__len__()
+
+    new_nav_top_content=nav_top_content[0:k_start]+ page_of_index +nav_top_content[k_end:]
+
+    #print new_nav_top_content
+    proxy.pages.save_one({'site' : site, 'page' : nav_page, 'content' : new_nav_top_content })       
+
