@@ -20,37 +20,9 @@ password=common.volatile_settings['password']
 Sender=common.volatile_settings['who'] # 值日生的 email
 Reciver=common.volatile_settings['email_address']
 Subject="HackingThursday 固定聚會 -- 中繼場地 ("+PartyDate+")"
-MailContent = common.mail_content
-MailContentSignature = common.mail_content_signature
-MailContentOtherLink = common.mail_content_other_link
 
-
-Html="""
-<html>
-  <head>
-    <title>HackingThursday</title>
-  </head>
-  <body>
-    <pre>
-      """+ MailContent +"""
-    </pre>
-    
-    <hr/>
-    
-    <pre>
-      """+ MailContentSignature +"""
-    </pre>
-    
-    <hr/>
-    
-    <pre>
-      """+ MailContentOtherLink +"""
-    </pre>
-  </body>
-</html>
-"""
-
-
+# 這裡改從網頁上將通告內文抓下來，以後改用網頁來更新通告。
+Html = common.get_wikidot_content_body("http://www.hackingthursday.org/invite")
 Txt = common.html2txt( Html )
 
 if __name__ == "__main__":

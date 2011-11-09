@@ -128,24 +128,6 @@ def read_settings_from_file():
 ## Contents
 ##################
 
-mail_content = '''
-這次聚會和上週一樣是在 MarketPlace。
-
-詳細資訊如下:
-
-場地: MarketPlace 
-時間: 週四晚上 19:30 至 22:00
-地址: 台北市重慶南路一段1號2樓 ( 忠孝西路與重慶南路交口的 7-11 樓上, 近台北車站 )
- Map: http://goo.gl/8jmBY
-
-店家有提供無線上網，電源，營業時間至 22:00 。
-低消為1杯飲料，飲料約 100-140 元，輕食加飲料約 190-250 元。
->>店家有129元價位的簡餐(含飲料)，但限時17:00-18:00點餐，時間彈性的人可以提前前往用餐<<
-
-如果您在前來的過程中，有任何問題，歡迎隨時聯絡我們。
-或是填下列問卷，協助我們了解你的聯絡方式: http://goo.gl/FCV8f
-'''
-
 mail_content_header='''
 這個是昨天的聚會手記，感謝大家的心得分享～
 
@@ -156,26 +138,6 @@ mail_content_footer='''
 http://www.hackingthursday.org/
 http://groups.google.com/group/hackingthursday/
 http://pad.hackingthursday.org/
-'''
-
-mail_content_other_link='''
-H4 wiki, 若有新玩意 or 想問的問題可以先行貼上去囉
-http://pad.hackingthursday.org
-'''
-
-mail_content_signature='''
-這是一個給喜歡玩軟體、寫程式的人的小小聚會。
-內容不外乎手把手，弄點東西，閒聊八卦。
-
-這個聚會是開放的，你想參加的話，不用回信告知我們，
-直接前來即可。也歡迎你邀朋友一起來  :-)
-
-A small gathering for people who like software and programming.
-Nothing but hand by hand, play something, and chat.
-Welcome to here to have a dinner and talk together.
-
-This gathering is open. Just come if you like it.
-Welcome to bring your friends, too.
 '''
 
 
@@ -211,3 +173,32 @@ def html2xml( the_html ):
 def html2txt( the_html ):
     result = html2text.html2text( the_html.decode('utf-8'), '' ).encode('utf-8')
     return result
+
+
+def get_wikidot_content_body( URL ):
+    xmlfile  = tempfile.mktemp()
+    htmlfile = tempfile.mktemp()
+
+    os.system( "wget -O "+htmlfile+" "+URL )
+    the_html = file2string( htmlfile )
+    os.system( "rm "+ htmlfile )
+
+    the_xml = html2xml( the_html )
+    string2file( the_xml, xmlfile )
+    doc = libxml2.parseFile( xmlfile )
+
+    ctxt = doc.xpathNewContext()
+    ctxt.xpathRegisterNs('xhtml', 'http://www.w3.org/1999/xhtml')
+    rows = ctxt.xpathEval('//xhtml:div[@id="page-content"]')
+    ctxt.xpathFreeContext()
+
+    f = StringIO.StringIO()
+    buf = libxml2.createOutputBuffer(f, 'UTF-8')
+    rows[0].docSetRootElement( doc )
+    doc.saveFileTo(buf, 'UTF-8')
+    
+    os.system( "rm " + xmlfile )
+    result = f.getvalue()
+
+    return result
+

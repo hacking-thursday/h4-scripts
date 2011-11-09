@@ -33,35 +33,8 @@ MailContentSignature = common.mail_content_signature
 MailContentOtherLink = common.mail_content_other_link
 
 
-def get_wikidot_content_body( URL ):
-    xmlfile  = tempfile.mktemp()
-    htmlfile = tempfile.mktemp()
 
-    os.system( "wget -O "+htmlfile+" "+URL )
-    the_html = common.file2string( htmlfile )
-    os.system( "rm "+ htmlfile )
-
-    the_xml = common.html2xml( the_html )
-    common.string2file( the_xml, xmlfile )
-    doc = libxml2.parseFile( xmlfile )
-
-    ctxt = doc.xpathNewContext()
-    ctxt.xpathRegisterNs('xhtml', 'http://www.w3.org/1999/xhtml')
-    rows = ctxt.xpathEval('//xhtml:div[@id="page-content"]')
-    ctxt.xpathFreeContext()
-
-    f = StringIO.StringIO()
-    buf = libxml2.createOutputBuffer(f, 'UTF-8')
-    rows[0].docSetRootElement( doc )
-    doc.saveFileTo(buf, 'UTF-8')
-    
-    os.system( "rm " + xmlfile )
-    result = f.getvalue()
-
-    return result
-
-
-the_content_html = get_wikidot_content_body( WikidotNoteURL )
+the_content_html = common.get_wikidot_content_body( WikidotNoteURL )
 
 
 Html = """
