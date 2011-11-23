@@ -106,7 +106,7 @@ def parse_data_from_page( page ):
 	for i in range(0, content_rows.__len__() ):
 	        line = content_rows[i] 
 		#print i,": ", line	
-		result = re.findall( '^\+(.*):$', line)
+		result = re.findall( '^\+(.*):\s*$', line)
 		if result.__len__() > 0:
 			itemsline = result[0].strip()
 			items = itemsline.split(',')
