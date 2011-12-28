@@ -21,8 +21,8 @@ api_key = volatile_settings['wikidot_api_key']
 s = ServerProxy('https://'+api_user+':'+api_key+'@www.wikidot.com/xml-rpc-api.php')
 
 tomorrow = thisThursday()
-lastweek = prevThursday()
-nextweek = nextThursday()
+lastweek = prevThursday( tomorrow )
+nextweek = nextThursday( tomorrow )
 site = 'hackingthursday'
 page = tomorrow
 title = tomorrow + ' 聚會手記'

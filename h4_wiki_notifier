@@ -26,13 +26,8 @@ Reciver=common.volatile_settings['email_address']
 Subject="HackingThursday 聚會手記 ("+PartyDate+")"
 WikidotNoteURL="http://hackingthursday.wikidot.com/"+PartyDate
 
-MailContent          = common.mail_content
 MailContentHeader    = common.mail_content_header
 MailContentFooter    = common.mail_content_footer
-MailContentSignature = common.mail_content_signature
-MailContentOtherLink = common.mail_content_other_link
-
-
 
 the_content_html = common.get_wikidot_content_body( WikidotNoteURL )
 

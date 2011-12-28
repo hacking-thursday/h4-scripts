@@ -26,15 +26,13 @@ def thisThursday():
     this_thursday = datetime.date.today() + datetime.timedelta( days=delta_days )
     return this_thursday.isoformat()
 
-def nextThursday():
-    this_thursday_str = thisThursday()
+def nextThursday( this_thursday_str ):
     this_thursday = datetime.datetime.strptime( this_thursday_str, "%Y-%m-%d" )
     next_thursday = this_thursday + datetime.timedelta( days=7 )
     result = next_thursday.date().isoformat()
     return result
 
-def prevThursday():
-    this_thursday_str = thisThursday()
+def prevThursday( this_thursday_str ):
     this_thursday = datetime.datetime.strptime( this_thursday_str, "%Y-%m-%d" )
     prev_thursday = this_thursday + datetime.timedelta( days=-7 )
     result = prev_thursday.date().isoformat()
