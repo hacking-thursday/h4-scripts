@@ -14,10 +14,18 @@ import tempfile
 import os
 import libxml2
 import StringIO
+import sys
 
 common.read_settings_from_file()
 
 PartyDate = common.thisThursday()
+
+if sys.argv.__len__() == 2 :
+  PartyDate = sys.argv[1]
+
+if common.isThursday( PartyDate ) == False:
+	print "Error: ", PartyDate, " is not Thursday..."
+	exit()
 
 username=common.volatile_settings['username']
 password=common.volatile_settings['password']
