@@ -11,6 +11,7 @@ import datetime
 import smtplib
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
+from email.Header import Header
 
 import os
 import ConfigParser
@@ -50,7 +51,7 @@ def isThursday( date_str ):
 def send_gmail( sender, recipient, subject, text, html, username, passwd ):
    msg = MIMEMultipart("alternative")
 
-   msg['Subject'] = subject
+   msg['Subject'] = Header( subject, "utf-8" )
    msg['From'] = sender
    msg['To'] = recipient 
 
