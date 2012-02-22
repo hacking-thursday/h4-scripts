@@ -10,6 +10,7 @@
 # Copyright: 幸延 <a0726h77@gmail.com>
 # License: MIT
 
+import sys
 import datetime
 from xmlrpclib import ServerProxy
 from common import *
@@ -21,6 +22,14 @@ api_key = volatile_settings['wikidot_api_key']
 s = ServerProxy('https://'+api_user+':'+api_key+'@www.wikidot.com/xml-rpc-api.php')
 
 tomorrow = thisThursday()
+
+if sys.argv.__len__() == 2 :
+  tomorrow = sys.argv[1]
+
+if isThursday( tomorrow ) == False:
+        print "Error: ", tomorrow, " is not Thursday..."
+        exit()
+
 lastweek = prevThursday( tomorrow )
 nextweek = nextThursday( tomorrow )
 site = 'hackingthursday'

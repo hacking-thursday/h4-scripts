@@ -14,7 +14,10 @@ from xmlrpclib import ServerProxy
 from common import *
 import re
 import urllib
+import os
 
+ROOT = os.path.dirname( os.path.abspath( __file__ ) )
+cache_dir = os.path.join( ROOT, "cache" )
 
 #
 # 程式參數
@@ -81,6 +84,53 @@ formal_name = {
 #
 # 程式資料結構
 #
+
+#
+# 將頁面資料從 wikidot 下載到本地端
+#
+def pull_and_cache_pages( site, pages ):
+	while pages.__len__() > 0:
+		# 一次取10個
+		page_ary = pages[0:10]
+		meta_ary = proxy.pages.get_meta({"site":site,"pages":page_ary })
+		
+		for page in page_ary:
+			page_time = meta_ary[page]['updated_at']
+			page_file = os.path.join( cache_dir, page+'@'+page_time )
+			
+			if os.access( cache_dir, os.R_OK | os.W_OK ) != True:
+				os.mkdir( cache_dir )
+
+			if os.access( page_file, os.R_OK ) != True:
+				exist_pages = os.listdir( cache_dir )
+				for p in exist_pages:
+					if p[:page.__len__()] == page:
+						p_path = os.path.join(cache_dir, p )
+						print "Remove duplicate: ", p
+						os.remove( p_path )
+
+				print "Fetching page: ", page, " ..."
+				the_page = proxy.pages.get_one({"site":site,"page":page})
+				content = the_page["content"].encode('utf8')
+				f = open( page_file, 'w' )
+				f.write( content )
+				f.close()
+
+		# 跳下一輪
+		pages = pages[10:]
+			
+def get_page_content( page ):
+	result = ""
+
+	exist_pages = os.listdir( cache_dir )
+	for p in exist_pages:
+		if p[:page.__len__()] == page:
+			p_path = os.path.join(cache_dir, p )
+			result = file2string( p_path )
+
+	return result
+
+
 def append_data_per_author( author, date, data ):
 	global collection
 
@@ -96,9 +146,55 @@ def append_data_per_author( author, date, data ):
 	# 在加入之前，要先將 author 的內容 normalize 過
 	collection += [( author, date, data )]
 
+def title_filter( line ):
+	en_char = "abcdefghijklmnopqrstuvwxyz"
+
+	# 先允許
+	if line.find('4$') != -1:
+		return True
+	if line.find('$4') != -1:
+		return True
+	if line.find('小迪克') != -1:
+		return True
+	if line.find('魏藥') != -1:
+		return True
+
+	# 再過濾
+	if line[0:1] == ">":
+		return False
+	if line[0:1] == "*":
+		return False
+	if line[0:1] == "?":
+		return False
+	if line.find('Vim') != -1:
+		return False
+	if line.find('Video') != -1:
+		return False
+	if line.find('someone') != -1:
+		return False
+	if line.find('今天') != -1:
+		return False
+	if line.find('前情') != -1:
+		return False
+	if line.find('本週') != -1:
+		return False
+	if line.find('討論') != -1:
+		return False
+	if line.find('活動') != -1:
+		return False
+	if line.find('捷運') != -1:
+		return False
+	if line.find('休息') != -1:
+		return False
+	if not line[0:1].lower() in en_char:
+		return False
+	
+	return True
+
 def parse_data_from_page( page ):
-	the_page = proxy.pages.get_one({"site":site,"page":page})
-	content = the_page["content"].encode('utf8')
+	#the_page = proxy.pages.get_one({"site":site,"page":page})
+	#content = the_page["content"].encode('utf8')
+	content = get_page_content( page )
 	content_rows = content.split("\n")
 
 	list=[]
@@ -106,26 +202,33 @@ def parse_data_from_page( page ):
 	for i in range(0, content_rows.__len__() ):
 	        line = content_rows[i] 
 		#print i,": ", line	
-		result = re.findall( '^\+(.*):\s*$', line)
+		result = re.findall( '^\+ (.*)\s*$', line)
 		if result.__len__() > 0:
-			itemsline = result[0].strip()
-			items = itemsline.split(',')
-			for item in items:
-				author = item.strip()
-				#print "found >>> ", author
-				list += [( author, i )]
+			if title_filter( result[0] ):
+				itemsline = result[0].strip().replace(':','')
+				items = itemsline.split(',')
+				authors = []
+				for item in items:
+					author = item.strip()
+					print "Found... >>>", author
+					authors += [ author ]
+
+				list += [( authors, i )]
+			else:
+				print "Skip... >>>", result[0]
 
 	#print list
 	for i in range( 0, list.__len__() ):
 		data = []
-		if i+1 == list.__len__():
+		if i+1 == list.__len__(): # 最後一個
 			for j in range( list[i][1]+1, content_rows.__len__() ):
 				data += [ content_rows[j] ]
 		else: 
 			for j in range( list[i][1]+1, list[i+1][1] ):
 				data += [ content_rows[j] ]
 
-		append_data_per_author( list[i][0], page, data )
+		for author in list[i][0]:
+			append_data_per_author( author, page, data )
 
 
 
@@ -228,7 +331,9 @@ for page in all_pages:
 	if page[0:2] == "20" and page[4] == "-" and page[7] == "-":
 		selecte_pages += [ page ]
 
+
 selecte_pages.sort( reverse=True ) # 將最新日期放在最前面
+pull_and_cache_pages( site, selecte_pages ) # 下載聚會手記相關的頁面
 for page in selecte_pages:
 	print "處理頁面: ", page
 	parse_data_from_page(page)
