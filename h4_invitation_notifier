@@ -19,7 +19,7 @@ username=common.volatile_settings['username']
 password=common.volatile_settings['password']
 Sender=common.volatile_settings['who'] # 值日生的 email
 Reciver=common.volatile_settings['email_address']
-Subject="HackingThursday 固定聚會 -- 中繼場地 ("+PartyDate+")"
+Subject="HackingThursday 固定聚會 ("+PartyDate+")"
 
 # 這裡改從網頁上將通告內文抓下來，以後改用網頁來更新通告。
 Html = common.get_wikidot_content_body("http://www.hackingthursday.org/invite")
