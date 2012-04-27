@@ -15,6 +15,7 @@ import os
 import libxml2
 import StringIO
 import sys
+from xmlrpclib import ServerProxy
 
 common.read_settings_from_file()
 
@@ -27,18 +28,71 @@ if common.isThursday( PartyDate ) == False:
 	print "Error: ", PartyDate, " is not Thursday..."
 	exit()
 
-username=common.volatile_settings['username']
-password=common.volatile_settings['password']
-Sender=common.volatile_settings['who'] # 值日生的 email
-Reciver=common.volatile_settings['email_address']
-Subject="HackingThursday 聚會手記 ("+PartyDate+")"
-WikidotNoteURL="http://hackingthursday.wikidot.com/"+PartyDate
+api_user          = common.volatile_settings['wikidot_api_user']
+api_key           = common.volatile_settings['wikidot_api_key']
+username          = common.volatile_settings['username']
+password          = common.volatile_settings['password']
+Sender            = common.volatile_settings['who'] # 值日生的 email
+Reciver           = common.volatile_settings['email_address']
+Subject           = "HackingThursday 聚會手記 ("+PartyDate+")"
+WikidotNoteURL    = "http://hackingthursday.wikidot.com/"+PartyDate
+EtherpadURL       = "http://sync.in/ep/pad/export/h4/latest?format=txt"
+lastweek          = common.prevThursday( PartyDate )
+nextweek          = common.nextThursday( PartyDate )
 
-MailContentHeader    = common.mail_content_header
-MailContentFooter    = common.mail_content_footer
+MailContentHeader = common.mail_content_header
+MailContentFooter = common.mail_content_footer
 
-the_content_html = common.get_wikidot_content_body( WikidotNoteURL )
+the_content_txt   = common.get_etherpad_content_body( EtherpadURL )
 
+if the_content_txt == None:
+	print "抓取 Etherpad 內容失敗"
+	exit(1)
+
+the_content_html  = common.get_wikidot_content_body( WikidotNoteURL )
+
+s = ServerProxy('https://'+api_user+':'+api_key+'@www.wikidot.com/xml-rpc-api.php')
+
+print the_content_txt
+
+site    = 'hackingthursday'
+page    = PartyDate
+title   = PartyDate + ' 聚會手記'
+content = '''
+[[[ %s |上一週]]] || [[[ %s |下一週]]]
+
+[[toc]]
+
+%s
+
+''' % (lastweek, nextweek, the_content_txt )
+
+s.pages.save_one({'site' : site, 'page' : page, 'title' : title, 'content' : content})
+
+print 'To view : http://%s.wikidot.com/%s' % (site, page)
+
+
+site="hackingthursday"
+page2="nav:top"
+target_keyword=u"\n* [# 聚會手記] \n"
+
+nav_top_page = s.pages.get_one({"site":site,"page":page2})
+nav_top_content = nav_top_page["content"]
+
+foundReturn = nav_top_content.find( PartyDate )
+if foundReturn < 0:
+    k_start = nav_top_content.find( target_keyword )
+    if k_start >= 0 :
+        k_end = k_start + target_keyword.__len__()
+
+        new_nav_top_content=nav_top_content[0:k_end]+u" * [[["+PartyDate+"]]]\n"+nav_top_content[k_end:]
+
+        #print new_nav_top_content
+        s.pages.save_one({'site' : site, 'page' : page2, 'content' : new_nav_top_content })       
+else:
+    print "頁面的對應選單項目已建立"
+
+print 'To view : http://%s.wikidot.com/%s' % (site, page2)
 
 Html = """
 <html>
@@ -65,4 +119,4 @@ if __name__ == "__main__":
     receivers = Reciver.split(',')
     for item in receivers:
         receiver = item.strip()	
-	common.send_gmail( Sender, receiver, Subject, Txt, Html, username, password )
+	#common.send_gmail( Sender, receiver, Subject, Txt, Html, username, password )

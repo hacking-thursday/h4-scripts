@@ -201,3 +201,18 @@ def get_wikidot_content_body( URL ):
 
     return result
 
+
+def get_etherpad_content_body( URL ):
+    htmlfile = tempfile.mktemp()
+
+    ret = os.system( "wget -O "+htmlfile+" "+URL )
+    if ret == 0:
+	    the_html = file2string( htmlfile )
+    else:
+	    the_html = None
+    os.system( "rm "+ htmlfile )
+
+    result = the_html
+
+    return result
+
