@@ -49,7 +49,7 @@ if the_content_txt == None:
 	print "抓取 Etherpad 內容失敗"
 	exit(1)
 
-the_content_html  = common.get_wikidot_content_body( WikidotNoteURL )
+#the_content_html  = common.get_wikidot_content_body( WikidotNoteURL )
 
 s = ServerProxy('https://'+api_user+':'+api_key+'@www.wikidot.com/xml-rpc-api.php')
 
@@ -101,13 +101,7 @@ Html = """
     </head>
     <body>
     <pre>"""+MailContentHeader+"""</pre>
-    
     <a>"""+WikidotNoteURL+"""</a>
-
-    <hr/>
-    """+the_content_html+"""
-    <hr/>
-    
     <pre>"""+MailContentFooter+"""</pre>
     </body>
 </html>
@@ -119,4 +113,4 @@ if __name__ == "__main__":
     receivers = Reciver.split(',')
     for item in receivers:
         receiver = item.strip()	
-	#common.send_gmail( Sender, receiver, Subject, Txt, Html, username, password )
+	common.send_gmail( Sender, receiver, Subject, Txt, Html, username, password )
