@@ -35,7 +35,7 @@ password          = common.volatile_settings['password']
 Sender            = common.volatile_settings['who'] # 值日生的 email
 Reciver           = common.volatile_settings['email_address']
 Subject           = "HackingThursday 聚會手記 ("+PartyDate+")"
-WikidotNoteURL    = "http://hackingthursday.wikidot.com/"+PartyDate
+WikidotNoteURL    = "http://www.hackingthursday.org/"+PartyDate
 EtherpadURL       = "http://sync.in/ep/pad/export/h4/latest?format=txt"
 lastweek          = common.prevThursday( PartyDate )
 nextweek          = common.nextThursday( PartyDate )
@@ -43,6 +43,10 @@ nextweek          = common.nextThursday( PartyDate )
 MailContentHeader = common.mail_content_header
 MailContentFooter = common.mail_content_footer
 
+
+################################################################################
+# 抓取 etherpad 上的內容，然後自動更新到對應的 wikidot 頁面 
+################################################################################
 the_content_txt   = common.get_etherpad_content_body( EtherpadURL )
 
 if the_content_txt == None:
@@ -69,9 +73,12 @@ content = '''
 
 s.pages.save_one({'site' : site, 'page' : page, 'title' : title, 'content' : content})
 
-print 'To view : http://%s.wikidot.com/%s' % (site, page)
+print 'To view : http://www.hackingthursday.org/%s' % ( page )
 
 
+################################################################################
+# 更新主選單的選單列表
+################################################################################
 site="hackingthursday"
 page2="nav:top"
 target_keyword=u"\n* [# 聚會手記] \n"
@@ -92,8 +99,11 @@ if foundReturn < 0:
 else:
     print "頁面的對應選單項目已建立"
 
-print 'To view : http://%s.wikidot.com/%s' % (site, page2)
+print 'To view : http://www.hackingthursday.org/%s' % (page2)
 
+################################################################################
+# 寄通知信
+################################################################################
 Html = """
 <html>
     <head>

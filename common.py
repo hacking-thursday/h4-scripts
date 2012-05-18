@@ -133,10 +133,10 @@ mail_content_header='''
 '''
 
 mail_content_footer='''
-相關連結:
-http://www.hackingthursday.org/
-http://groups.google.com/group/hackingthursday/
-http://pad.hackingthursday.org/
+----
+主網站: http://www.hackingthursday.org/
+Google論譠: http://groups.google.com/group/hackingthursday/
+Facebook群組: http://www.facebook.com/groups/hackingday/
 '''
 
 
