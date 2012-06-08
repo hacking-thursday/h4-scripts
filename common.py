@@ -44,6 +44,13 @@ def isThursday( date_str ):
     result = ( this_day.isoweekday() == 4 )
     return result
 
+def isFuture( date_str ):
+    this_day = datetime.datetime.strptime( date_str, "%Y-%m-%d").date()
+    today = datetime.date.today()
+    if today >= this_day:
+	return False
+    else:
+	return True
 
 #
 # send_gmail("matlinuxer2@gmail.com", "matlinuxer2@gmail.com", "Hello from python!", "<hr/><h1>hello from python</h1><hr/>", "USERNAME", "PASSWORD")

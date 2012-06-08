@@ -28,6 +28,10 @@ if common.isThursday( PartyDate ) == False:
 	print "Error: ", PartyDate, " is not Thursday..."
 	exit()
 
+if common.isFuture( PartyDate ) == True:
+	print "Error: ", PartyDate, " is in the future..."
+	exit()
+
 api_user          = common.volatile_settings['wikidot_api_user']
 api_key           = common.volatile_settings['wikidot_api_key']
 username          = common.volatile_settings['username']
@@ -44,36 +48,41 @@ MailContentHeader = common.mail_content_header
 MailContentFooter = common.mail_content_footer
 
 
-################################################################################
-# 抓取 etherpad 上的內容，然後自動更新到對應的 wikidot 頁面 
-################################################################################
-the_content_txt   = common.get_etherpad_content_body( EtherpadURL )
+s                 = ServerProxy('https://'+api_user+':'+api_key+'@www.wikidot.com/xml-rpc-api.php')
 
-if the_content_txt == None:
-	print "抓取 Etherpad 內容失敗"
-	exit(1)
-
-#the_content_html  = common.get_wikidot_content_body( WikidotNoteURL )
-
-s = ServerProxy('https://'+api_user+':'+api_key+'@www.wikidot.com/xml-rpc-api.php')
-
-print the_content_txt
-
-site    = 'hackingthursday'
-page    = PartyDate
-title   = PartyDate + ' 聚會手記'
-content = '''
-[[[ %s |上一週]]] || [[[ %s |下一週]]]
-
-[[toc]]
-
-%s
-
-''' % (lastweek, nextweek, the_content_txt )
-
-s.pages.save_one({'site' : site, 'page' : page, 'title' : title, 'content' : content})
-
-print 'To view : http://www.hackingthursday.org/%s' % ( page )
+##
+## 先改成手動移動內容，順便 review 一下，以免誤發不合適的內容
+##
+## ################################################################################
+## # 抓取 etherpad 上的內容，然後自動更新到對應的 wikidot 頁面 
+## ################################################################################
+## the_content_txt   = common.get_etherpad_content_body( EtherpadURL )
+## 
+## if the_content_txt == None:
+## 	print "抓取 Etherpad 內容失敗"
+## 	exit(1)
+## 
+## #the_content_html  = common.get_wikidot_content_body( WikidotNoteURL )
+## 
+## s = ServerProxy('https://'+api_user+':'+api_key+'@www.wikidot.com/xml-rpc-api.php')
+## 
+## print the_content_txt
+## 
+## site    = 'hackingthursday'
+## page    = PartyDate
+## title   = PartyDate + ' 聚會手記'
+## content = '''
+## [[[ %s |上一週]]] || [[[ %s |下一週]]]
+## 
+## [[toc]]
+## 
+## %s
+## 
+## ''' % (lastweek, nextweek, the_content_txt )
+## 
+## s.pages.save_one({'site' : site, 'page' : page, 'title' : title, 'content' : content})
+## 
+## print 'To view : http://www.hackingthursday.org/%s' % ( page )
 
 
 ################################################################################
