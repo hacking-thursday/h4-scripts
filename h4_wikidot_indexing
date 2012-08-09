@@ -43,6 +43,9 @@ mask_pages = [
 	   'start',
 	   'routine',
 	   'photoandvideo',
+	   'funding',
+	   'invite',
+	   'faq',
 	   ]
 
 
