@@ -11,7 +11,6 @@
 # License: MIT
 
 import sys
-import datetime
 from xmlrpclib import ServerProxy
 from common import *
 
@@ -19,19 +18,19 @@ read_settings_from_file()
 api_user = volatile_settings['wikidot_api_user']
 api_key = volatile_settings['wikidot_api_key']
 
-s = ServerProxy('https://'+api_user+':'+api_key+'@www.wikidot.com/xml-rpc-api.php')
+s = ServerProxy('https://' + api_user + ':' + api_key + '@www.wikidot.com/xml-rpc-api.php')
 
 tomorrow = thisThursday()
 
-if sys.argv.__len__() == 2 :
-  tomorrow = sys.argv[1]
+if sys.argv.__len__() == 2:
+    tomorrow = sys.argv[1]
 
-if isThursday( tomorrow ) == False:
-        print "Error: ", tomorrow, " is not Thursday..."
-        exit()
+if isThursday(tomorrow) is False:
+    print "Error: ", tomorrow, " is not Thursday..."
+    exit()
 
-lastweek = prevThursday( tomorrow )
-nextweek = nextThursday( tomorrow )
+lastweek = prevThursday(tomorrow)
+nextweek = nextThursday(tomorrow)
 site = 'hackingthursday'
 page = tomorrow
 title = tomorrow + ' 聚會手記'
@@ -45,28 +44,28 @@ content = '''
 [[/html]]
 ''' % (lastweek, nextweek)
 
-s.pages.save_one({'site' : site, 'page' : page, 'title' : title, 'content' : content})
+s.pages.save_one({'site': site, 'page': page, 'title': title, 'content': content})
 
 print 'To view : http://%s.wikidot.com/%s' % (site, page)
 
 
-site="hackingthursday"
-page2="nav:top"
-target_keyword=u"\n* [# 聚會手記] \n"
+site = "hackingthursday"
+page2 = "nav:top"
+target_keyword = u"\n* [# 聚會手記] \n"
 
-nav_top_page = s.pages.get_one({"site":site,"page":page2})
+nav_top_page = s.pages.get_one({"site": site, "page": page2})
 nav_top_content = nav_top_page["content"]
 
-foundReturn = nav_top_content.find( tomorrow )
+foundReturn = nav_top_content.find(tomorrow)
 if foundReturn < 0:
-    k_start = nav_top_content.find( target_keyword )
-    if k_start >= 0 :
+    k_start = nav_top_content.find(target_keyword)
+    if k_start >= 0:
         k_end = k_start + target_keyword.__len__()
 
-        new_nav_top_content=nav_top_content[0:k_end]+u" * [[["+tomorrow+"]]]\n"+nav_top_content[k_end:]
+        new_nav_top_content = nav_top_content[0:k_end] + u" * [[[" + tomorrow + "]]]\n" + nav_top_content[k_end:]
 
         #print new_nav_top_content
-        s.pages.save_one({'site' : site, 'page' : page2, 'content' : new_nav_top_content })       
+        s.pages.save_one({'site': site, 'page': page2, 'content': new_nav_top_content})
 else:
     print "頁面的對應選單項目已建立"
 

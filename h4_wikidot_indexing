@@ -9,11 +9,8 @@
 # License: MIT
 #
 
-import datetime
 from xmlrpclib import ServerProxy
 from common import *
-import re
-import urllib
 
 
 #

@@ -15,18 +15,18 @@ common.read_settings_from_file()
 PartyDate = common.thisThursday()
 
 
-username=common.volatile_settings['username']
-password=common.volatile_settings['password']
-Sender=common.volatile_settings['who'] # 值日生的 email
-Reciver=common.volatile_settings['email_address']
-Subject="HackingThursday 固定聚會 ("+PartyDate+")"
+username = common.volatile_settings['username']
+password = common.volatile_settings['password']
+Sender = common.volatile_settings['who']  # 值日生的 email
+Reciver = common.volatile_settings['email_address']
+Subject = "HackingThursday 固定聚會 (" + PartyDate + ")"
 
 # 這裡改從網頁上將通告內文抓下來，以後改用網頁來更新通告。
 Html = common.get_wikidot_content_body("http://www.hackingthursday.org/invite")
-Txt = common.html2txt( Html )
+Txt = common.html2txt(Html)
 
 if __name__ == "__main__":
     receivers = Reciver.split(',')
     for item in receivers:
-        receiver = item.strip()	
-        common.send_gmail( Sender, receiver, Subject, Txt, Html, username, password )
+        receiver = item.strip()
+        common.send_gmail(Sender, receiver, Subject, Txt, Html, username, password)
