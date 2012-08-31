@@ -2,3 +2,6 @@
 *.pyc
 *.rej
 *.diff
+*.orig
+*.lock
+*.log
