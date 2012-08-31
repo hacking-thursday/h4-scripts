@@ -32,9 +32,19 @@ class Facebook():
         #    line = usock.read()
         #    print line
 
+    def _getlsd(self):
+        url = 'http://www.facebook.com/login.php?login_attempt=1'
+
+        usock = self.opener.open(url)
+
+        line = usock.read()
+        lsd = re.findall('name="lsd" value="(\w+)" auto', line)[0]
+
+        return lsd
+
     def login(self):
         url = 'https://login.facebook.com/login.php?login_attempt=1'
-        data = "locale=en_US&non_com_login=&email=%s&pass=%s&lsd=%s" % (USERNAME, PASSWORD, 'AVpNwXkC')
+        data = "locale=en_US&non_com_login=&email=%s&pass=%s&lsd=%s" % (USERNAME, PASSWORD, self._getlsd())  # 'AVpNwXkC')
 
         usock = self.opener.open('http://www.facebook.com')
         usock = self.opener.open(url, data)
@@ -62,9 +72,19 @@ class Facebook():
 
         return uid
 
+    def _getfb_dtsg(self):
+        url = 'http://www.facebook.com/events/create/?gid=161774120511261'
+
+        usock = self.opener.open(url)
+
+        line = usock.read()
+        dtsg = re.findall('lag":2,"fb_dtsg":"(\w+)","ajax', line)[0]
+
+        return dtsg
+
     def create_event(self):
         url = 'http://www.facebook.com/ajax/plans/create/save.php'
-        data = urllib.urlencode({'fb_dtsg': 'AQCfQbPn',
+        data = urllib.urlencode({'fb_dtsg': self._getfb_dtsg(),  # 'AQCfQbPn',
                                  'title': 'HackingThursday固定聚會(%s)' % (common.thisThursday()),
                                  'details': '通告網址: http://www.hackingthursday.org/invite',
                                  'location_id': '154788921241520',  # MarketPlace
