@@ -1,0 +1,115 @@
+#!/usr/bin/env python
+#encoding: utf8
+
+#
+# 發送聚會通告至 ptt.cc Linux版
+#
+# Author: Chun-Yu Lee (Mat) <matlinuxer2@gmail.com>
+# Copyright: Chun-Yu Lee (Mat) <matlinuxer2@gmail.com>
+# License: GPL
+#
+
+#
+# Dependency: screen, pexpect, telnet
+#
+
+import common
+import pexpect
+import time
+import sys
+
+common.read_settings_from_file()
+
+
+# 設定 timeout 時間，以秒為單位。
+ID        = common.volatile_settings['bbs_user']
+PASSWD    = common.volatile_settings['bbs_pass']
+PartyDate = common.thisThursday()
+
+Subject   = "HackingThursday 固定聚會 (" + PartyDate + ")"
+Content   = common.html2txt( common.get_wikidot_content_body("http://www.hackingthursday.org/invite") )
+
+def step():
+	time.sleep( 5 )
+
+# 啟動 telnet
+child = pexpect.spawn ("screen -c /dev/null telnet -8 ptt.cc")
+child.logfile = sys.stdout #debbugging
+child.send (":encoding big5 utf-8")
+time.sleep(3)
+
+# 當 telnet 輸出 guest，便輸入帳號與密碼，超過時限則直接離開。
+child.expect ("guest")
+child.send ("%s\r%s\r" % ( ID, PASSWD ) )
+step()
+
+isMain = False
+
+while isMain == False:
+    idx = child.expect ([pexpect.EOF, pexpect.TIMEOUT, "【 分組討論區 】", "歡迎您再度拜訪本站", "您想刪除其他重複登入的連線嗎", "您要刪除以上錯誤嘗試的記錄嗎" ], timeout = 5)
+    print "\nidx: %s" % ( idx )
+    if idx == 0:
+        child.send ("e")
+    elif idx == 1:
+        child.send ("e")
+    elif idx == 2:
+        isMain = True
+    elif idx == 3:
+        child.send (" ")
+    elif idx == 4:
+        child.send ("Y\r")
+    elif idx == 5:
+        child.send ("n\r")
+    step()
+
+#child.expect ("【 分組討論區 】")
+child.send ("s")
+step()
+child.expect ("請輸入看板名稱")
+child.send ("Linux\r")
+#child.send ("Test\r")
+step()
+child.send (" ")
+step()
+
+child.expect ("文章選讀")
+child.send ("")
+step()
+child.send ("\r" )
+step()
+# 文章標題
+child.send ("[活動] %s\r" % ( Subject ) )
+
+# 文章內容
+for line in Content.split('\n'):
+	child.send ("%s\r" % (line.rstrip()) )
+step()
+child.send ("" )
+step()
+child.send ("S\r" )
+step()
+child.send ("0\r" )
+step()
+child.send ("  " )
+step()
+
+
+# 退出 bbs
+child.expect ("文章選讀")
+#child.send ("quit\r")
+child.send ("eee")
+step()
+child.send ("ee")
+step()
+child.send ("g\r")
+step()
+child.send ("y\r")
+step()
+child.send ("\r\r")
+step()
+
+#child.interact()     # Give control of the child to the user.
+
+# 退出 telnet 及 screen
+child.send ("quit\r")
+child.send (":quit")
