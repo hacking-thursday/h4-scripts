@@ -86,7 +86,7 @@ class Facebook():
         url = 'http://www.facebook.com/ajax/plans/create/save.php'
         data = urllib.urlencode({'fb_dtsg': self._getfb_dtsg(),  # 'AQCfQbPn',
                                  'title': 'HackingThursday固定聚會(%s)' % (common.thisThursday()),
-                                 'details': '通告網址: http://www.hackingthursday.org/invite',
+                                 'details': '通告網址: http://www.hackingthursday.org/invite\n餐卷訂購區: http://bit.ly/NiuN6V\nH4 T-Shirt 設計票選: http://bit.ly/h4tpoll',
                                  'location_id': '154788921241520',  # MarketPlace
                                  #'when_dateIntlDisplay': '9/4/2012',
                                  #'when_date': '9/4/2012',

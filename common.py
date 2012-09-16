@@ -138,8 +138,8 @@ def read_settings_from_file():
             volatile_settings['facebook_gid'] = config.get('facebook', 'facebook_gid')
 
 	    # Section: bbs
-            volatile_settings['bbs_user'] = config.get('bbs', 'user') 
-            volatile_settings['bbs_pass'] = config.get('bbs', 'pass') 
+            volatile_settings['bbs_user'] = config.get('bbs', 'user')
+            volatile_settings['bbs_pass'] = config.get('bbs', 'pass')
 
         except:
             pass
