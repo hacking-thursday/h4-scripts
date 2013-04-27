@@ -392,6 +392,8 @@ for author in authors:
     string2file( page_of_author, tmp_new )
     cmd = "diff -Naur %s %s" % ( tmp_old, tmp_new )
     out = subprocess.Popen( cmd, shell=True, stdout=subprocess.PIPE ).communicate()[0]
+    os.unlink( tmp_old )
+    os.unlink( tmp_new )
     print "==== %s 新舊差異的部分 ===========" % author
     print out
     print "=================================="
