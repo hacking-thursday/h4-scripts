@@ -1,0 +1,34 @@
+#!/usr/bin/env python
+# coding=utf8
+#
+# 建立 CLI 命令列界面，整合指令的使用方式
+#
+# Author: Chun-Yu Lee (Mat) <matlinuxer2@gmail.com>
+# License: MIT
+#
+
+import argparse
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+
+    # 通用選項
+    parser.add_argument('-n' , '--dry-run' , help='跳過會寫入的動作', dest='dryrun'      , action='store_true' )
+    parser.add_argument('-v' , '--verbose' , help='顯示更詳細的訊息', dest='verbose'     , action='store_true' )
+
+    # Actions
+    parser.add_argument('--invite-fb'       , help='動作: 發送聚會通告到 facebook' , dest='act_invite_fb'       , action='store_true' )
+    parser.add_argument('--invite-ptt'      , help='動作: 發送聚會通告到 ptt'      , dest='act_invite_ptt'      , action='store_true' )
+    parser.add_argument('--invite-email'    , help='動作: 發送聚會通告到 email'    , dest='act_invite_email'    , action='store_true' )
+
+    parser.add_argument('--wiki-notify'     , help='動作: 發送 wiki 聚會手記'     , dest='act_wiki_notify'     , action='store_true' )
+    parser.add_argument('--wiki-rebuild'    , help='動作: 更新 wiki 個人頁面'     , dest='act_wiki_rebuild'    , action='store_true' )
+    parser.add_argument('--wiki-new'        , help='動作: 新建 wiki 當週頁面'     , dest='act_wiki_new'        , action='store_true' )
+    parser.add_argument('--wiki-genidx'     , help='動作: 更新 wiki 選單列表'     , dest='act_wiki_genidx'     , action='store_true' )
+
+    parser.add_argument('--etherpad-notify' , help='動作: 提醒 etherpad 上有更新' , dest='act_etherpad_notify' , action='store_true' )
+
+    args = parser.parse_args()
+
+    print args
