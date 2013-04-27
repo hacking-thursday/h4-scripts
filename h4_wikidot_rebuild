@@ -14,6 +14,7 @@ from common import *
 import re
 import os
 import subprocess
+import tempfile
 import user_data
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -77,7 +78,7 @@ def get_page_content(page):
 
     exist_pages = os.listdir(cache_dir)
     for p in exist_pages:
-        if p[:page.__len__()] == page:
+        if p[:page.__len__()+1] == page+"@":
             p_path = os.path.join(cache_dir, p)
             result = file2string(p_path)
 
@@ -383,6 +384,17 @@ for author in authors:
     if page_of_author == page_of_author_orig:
         # 內容沒有變動，跳過不更新
         continue
+
+    # 顯示差異的部分
+    tmp_old = tempfile.mktemp()
+    tmp_new = tempfile.mktemp()
+    string2file( page_of_author_orig, tmp_old )
+    string2file( page_of_author, tmp_new )
+    cmd = "diff -Naur %s %s" % ( tmp_old, tmp_new )
+    out = subprocess.Popen( cmd, shell=True, stdout=subprocess.PIPE ).communicate()[0]
+    print "==== %s 新舊差異的部分 ===========" % author
+    print out
+    print "=================================="
 
     page_of_author = user_head + page_of_author # 加上保留的使用者編輯內容
 
