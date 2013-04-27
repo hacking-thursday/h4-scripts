@@ -1,8 +1,8 @@
-
-*.pyc
-*.rej
+*.bak
 *.diff
-*.orig
 *.lock
 *.log
-*.bak
+*.orig
+*.pyc
+*.rej
+/cache/

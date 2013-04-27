@@ -317,8 +317,41 @@ def process_page_per_author(author):
             for row in rows:
                 page_content += row + "\n"
 
+    page_content = page_content.strip() # Normalize
+
     return page_content
 
+def wikidot_list_date_pages( proxy, site ):
+	ret_data = []
+
+	pages = proxy.pages.select({'site': site})
+	for page in pages:
+	    if page[0:2] == "20" and page[4] == "-" and page[7] == "-":
+		ret_data += [page]
+
+	return ret_data
+	
+def wikidot_list_user_pages( proxy, site ):
+	ret_data = []
+
+	pages = proxy.pages.select({'site': site})
+	for page in pages:
+	    if page[0:5] == "user:":
+		ret_data += [page]
+
+	return ret_data
+
+def page_split_by_keyword( text, keyword ):
+	pos = text.rfind(keyword)
+
+	if pos >= 0:
+	    head = text[:pos]
+            body = text[pos:]
+	else:
+	    head = text
+	    body = ""
+
+	return head, body
 
 #
 # Main routine below
@@ -326,14 +359,15 @@ def process_page_per_author(author):
 
 
 # 列出要處理的頁面
-all_pages = proxy.pages.select({'site': site})
-for page in all_pages:
-    if page[0:2] == "20" and page[4] == "-" and page[7] == "-":
-        selecte_pages += [page]
+selecte_pages = wikidot_list_date_pages( proxy, site )
 
+user_pages = wikidot_list_user_pages( proxy, site )
+date_pages = wikidot_list_date_pages( proxy, site )
+pull_and_cache_pages(site, date_pages )  # 下載聚會手記相關的頁面
+pull_and_cache_pages(site, user_pages )  # 下載聚會手記相關的頁面
 
+selecte_pages = date_pages#exit()
 selecte_pages.sort(reverse=True)  # 將最新日期放在最前面
-pull_and_cache_pages(site, selecte_pages)  # 下載聚會手記相關的頁面
 for page in selecte_pages:
     print "處理頁面: ", page
     parse_data_from_page(page)
@@ -344,7 +378,13 @@ authors = list_authors()
 for author in authors:
     page_of_author = process_page_per_author(author)
     page = "user:" + author.lower()
+    user_head, page_of_author_orig = page_split_by_keyword( get_page_content(page), "[[toc]]" )
 
+    if page_of_author == page_of_author_orig:
+	continue
+
+    page_of_author = user_head + page_of_author # 加上保留的使用者編輯內容
+ 
     name = author
     if name in formal_name.keys():
         name = formal_name[name]
