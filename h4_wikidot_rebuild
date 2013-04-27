@@ -13,6 +13,8 @@ from xmlrpclib import ServerProxy
 from common import *
 import re
 import os
+import subprocess
+import user_data
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 cache_dir = os.path.join(ROOT, "cache")
@@ -22,67 +24,18 @@ cache_dir = os.path.join(ROOT, "cache")
 #
 read_settings_from_file()
 api_user = volatile_settings['wikidot_api_user']
-api_key = volatile_settings['wikidot_api_key']
-site = 'hackingthursday'
+api_key  = volatile_settings['wikidot_api_key']
+site     = 'hackingthursday'
+root_url = 'http://www.hackingthursday.org'
+proxy    = ServerProxy('https://' + api_user + ':' + api_key + '@www.wikidot.com/xml-rpc-api.php')
 
 #
 # 程式資料結構
 #
-proxy = ServerProxy('https://' + api_user + ':' + api_key + '@www.wikidot.com/xml-rpc-api.php')
-
-selecte_pages = []
-collection = []
-author_alias = {
-    "ca": "CA",
-    "ben": "Ben",
-    "4$": "fourdollars",
-    "$4": "fourdollars",
-    "聖博": "shengpo",
-    "aki.k": "Aki.K",
-    "aki": "Aki",
-    "ShengPo": "shengpo",
-    "Sheng-po": "shengpo",
-    "Sheng-Po": "shengpo",
-    "Tsung": "tsung",
-    "Clydewu": "clyde",
-    "ClydeWu": "clyde",
-    "blue119": "ypwang",
-    "DUCATI": "ducati",
-    "honkia": "honki",
-    "Honki": "honki",
-    "Honkia": "honki",
-    "Yuren": "yurenju",
-    "yuren": "yurenju",
-    "YurenJu": "yurenju",
-    "huebuer": "gittrac",
-    "chihchun": "rex",
-    "小迪克": "nctusdk",
-    "魏藥": "yaowei",
-    "Alex Lin": "alex-lin",
-}
-
-formal_name = {
-    "fourdollars": "四塊錢",
-    "shengpo": "聖博",
-    "mat": "Mat",
-    "rex": "Rex",
-    "tsung": "Tsung",
-    "clyde": "克勞德",
-    "lcamel": "LCamel",
-    "thinker": "Thinker",
-    "cih": "CIH",
-    "nctusdk": "小迪克",
-    "yaowei": "魏藥",
-    "alex-lin": "Alex Lin",
-    "layla": "Layla",
-    "mark": "Mark",
-    "max": "Max",
-}
-
-#
-# 程式資料結構
-#
-
+collection    = []
+collection2   = []
+collection3   = []
+user_mapping  = user_data.data
 
 #
 # 將頁面資料從 wikidot 下載到本地端
@@ -130,116 +83,142 @@ def get_page_content(page):
 
     return result
 
+def list_headings(page):
+    result = [];
+
+    exist_pages = os.listdir(cache_dir)
+    for p in exist_pages:
+        if p[:page.__len__()] == page:
+            p_path = os.path.join(cache_dir, p)
+            cmd = "php parse_wikidot_heading.php --file='%s'" % p_path
+            out = subprocess.Popen( cmd, shell=True, stdout=subprocess.PIPE ).communicate()[0]
+            result = out.strip().split('\n')
+
+    return result
+
 
 def append_data_per_author(author, date, data):
     global collection
 
-    # 這裡作一次作者名稱的查表代換
-    if author in author_alias.keys():
-        alias = author_alias[author]
-        print "[%s] => [%s]" % (author, alias)
-        author = alias
-
-    # 將英文名稱轉小寫
-    author = author.lower()
-
-    # 在加入之前，要先將 author 的內容 normalize 過
     collection += [(author, date, data)]
 
+def collect_unmapped_headding( heading, page ):
+    global collection2
 
-def title_filter(line):
-    en_char = "abcdefghijklmnopqrstuvwxyz"
+    collection2 += [(page, heading)]
 
-    # 先允許
-    if line.find('4$') != -1:
-        return True
-    if line.find('$4') != -1:
-        return True
-    if line.find('小迪克') != -1:
-        return True
-    if line.find('魏藥') != -1:
-        return True
+def collect_notify( url_name ):
+    global collection3
 
-    # 再過濾
-    if line[0:1] == ">":
-        return False
-    if line[0:1] == "*":
-        return False
-    if line[0:1] == "?":
-        return False
-    if line.find('Vim') != -1:
-        return False
-    if line.find('Video') != -1:
-        return False
-    if line.find('someone') != -1:
-        return False
-    if line.find('今天') != -1:
-        return False
-    if line.find('前情') != -1:
-        return False
-    if line.find('本週') != -1:
-        return False
-    if line.find('討論') != -1:
-        return False
-    if line.find('活動') != -1:
-        return False
-    if line.find('捷運') != -1:
-        return False
-    if line.find('休息') != -1:
-        return False
-    if not line[0:1].lower() in en_char:
-        return False
-
-    return True
+    collection3 += [ url_name ]
 
 
-def parse_data_from_page(page):
-    #the_page = proxy.pages.get_one({"site":site,"page":page})
-    #content = the_page["content"].encode('utf8')
-    content = get_page_content(page)
+def normalize_alias( alias ):
+    result = alias
+    result = result.replace(':'  , '')
+    result = result.replace(','  , '')
+    result = result.replace('.'  , '')
+    result = result.replace('-'  , '')
+    result = result.replace('\'' , '')
+    result = result.replace('"'  , '')
+    result = result.replace('_'  , '')
+    result = result.replace(' '  , '')
+    result = result.lower() 
+    result = result.strip()
+
+    return result
+
+def find_author_by_heading( heading ):
+    global user_mapping
+
+    result = None 
+
+    alias = normalize_alias( heading )
+
+    for row in user_mapping:
+        aliases = row['alias']
+        for a in aliases:
+                a2 = normalize_alias( a )
+                if alias == a2:
+                        result = row
+
+    return result
+
+def find_author_by_name( url_name ):
+    global user_mapping
+
+    result = None 
+
+    for row in user_mapping:
+        if url_name == row['url_name']:
+                result = row
+
+    return result
+
+def partition_page(page):
+    content   = get_page_content(page)
+    headings  = list_headings(page)
+    
+    pos_ary      = []
+    parts        = []
     content_rows = content.split("\n")
-
-    list = []
 
     for i in range(0, content_rows.__len__()):
         line = content_rows[i]
         #print i,": ", line
         result = re.findall('^\+ (.*)\s*$', line)
         if result.__len__() > 0:
-            if title_filter(result[0]):
-                itemsline = result[0].strip().replace(':', '')
-                items = itemsline.split(',')
-                authors = []
-                for item in items:
-                    author = item.strip()
-                    print "Found... >>>", author
-                    authors += [author]
+            heading = result[0]
+            if heading in headings:
+                pos_ary += [(heading, i)]
 
-                list += [(authors, i)]
-            else:
-                print "Skip... >>>", result[0]
-
-    #print list
-    for i in range(0, list.__len__()):
+    for i in range(0, pos_ary.__len__()):
         data = []
-        if i + 1 == list.__len__():  # 最後一個
-            for j in range(list[i][1] + 1, content_rows.__len__()):
+        if i + 1 == pos_ary.__len__():  # 最後一個
+            for j in range(pos_ary[i][1] + 1, content_rows.__len__()):
                 data += [content_rows[j]]
         else:
-            for j in range(list[i][1] + 1, list[i + 1][1]):
+            for j in range(pos_ary[i][1] + 1, pos_ary[i + 1][1]):
                 data += [content_rows[j]]
 
-        for author in list[i][0]:
-            append_data_per_author(author, page, data)
+        heading = pos_ary[i][0]
+        parts += [( heading, data )]
+
+    return parts
+
+def parse_data_from_page(page):
+    parts = partition_page( page )
+
+    for part in parts:
+        heading_str = part[0]
+        data        = part[1]
+
+        heading_ary = heading_str.split(',')
+        for heading in heading_ary:
+            heading = heading.strip()
+
+            # 如果該段是作者，則加入資料收集        
+            author_data = find_author_by_heading( heading )
+            if author_data != None:
+                author = author_data['url_name']
+                print "mapped  :: %s/%s :: %s => %s " % ( root_url, page, heading, author )
+                append_data_per_author(author, page, data)
+            else:
+                print "unmapped:: %s/%s :: %s " % ( root_url, page, heading )
+                collect_unmapped_headding( heading, page ) 
 
 
 def list_authors():
     result = []
-    for item in collection:
-        if item[0] in result:
+    for item in user_mapping:
+        name = item['url_name']
+        if name in result:
             continue
-        else:
-            result += [item[0]]
+     
+        if name.strip() == "":
+            continue
+        
+        result += [name]
 
     return result
 
@@ -280,14 +259,15 @@ def make_index_of_authors():
         items = data_dict[key]
         items.sort()  # 這裡作一次排序
         for item in items:
-            name = item
 
             # 這裡將作者名稱再轉成更個人化一些
-            if item in formal_name.keys():
-                name = formal_name[item]
+            author_data = find_author_by_name( item )
+            rel_name = author_data['rel_name']
 
-            if name.lower() != item:
-                name = name + " (%s)" % (item)
+            if item.lower() == rel_name.lower() or rel_name.strip() == "":
+		    name = "%s" % ( item )
+            else:
+		    name = "%s (%s)" % ( rel_name, item )
 
             result += "  * [[[user:" + item + "|" + name + "]]]\n"
 
@@ -322,36 +302,36 @@ def process_page_per_author(author):
     return page_content
 
 def wikidot_list_date_pages( proxy, site ):
-	ret_data = []
+        ret_data = []
 
-	pages = proxy.pages.select({'site': site})
-	for page in pages:
-	    if page[0:2] == "20" and page[4] == "-" and page[7] == "-":
-		ret_data += [page]
+        pages = proxy.pages.select({'site': site})
+        for page in pages:
+            if page[0:2] == "20" and page[4] == "-" and page[7] == "-":
+                ret_data += [page]
 
-	return ret_data
-	
+        return ret_data
+        
 def wikidot_list_user_pages( proxy, site ):
-	ret_data = []
+        ret_data = []
 
-	pages = proxy.pages.select({'site': site})
-	for page in pages:
-	    if page[0:5] == "user:":
-		ret_data += [page]
+        pages = proxy.pages.select({'site': site})
+        for page in pages:
+            if page[0:5] == "user:":
+                ret_data += [page]
 
-	return ret_data
+        return ret_data
 
 def page_split_by_keyword( text, keyword ):
-	pos = text.rfind(keyword)
+        pos = text.rfind(keyword)
 
-	if pos >= 0:
-	    head = text[:pos]
+        if pos >= 0:
+            head = text[:pos]
             body = text[pos:]
-	else:
-	    head = text
-	    body = ""
+        else:
+            head = text
+            body = ""
 
-	return head, body
+        return head, body
 
 #
 # Main routine below
@@ -359,21 +339,41 @@ def page_split_by_keyword( text, keyword ):
 
 
 # 列出要處理的頁面
-selecte_pages = wikidot_list_date_pages( proxy, site )
-
 user_pages = wikidot_list_user_pages( proxy, site )
 date_pages = wikidot_list_date_pages( proxy, site )
+print "Fetching 聚會手記..."
 pull_and_cache_pages(site, date_pages )  # 下載聚會手記相關的頁面
-pull_and_cache_pages(site, user_pages )  # 下載聚會手記相關的頁面
+print "Fetching 個人頁面..."
+pull_and_cache_pages(site, user_pages )  # 下載個人頁面相關的頁面
 
-selecte_pages = date_pages#exit()
-selecte_pages.sort(reverse=True)  # 將最新日期放在最前面
-for page in selecte_pages:
+date_pages.sort(reverse=True)  # 將最新日期放在最前面
+for page in date_pages:
     print "處理頁面: ", page
     parse_data_from_page(page)
 
+# 
+# 列出每個作者的統計資訊
+# 
+print "==== 列出每個作者的統計資訊 ============================"
+authors = list_authors()
+authors_cnt = [] 
+for author in authors:
+    cnt = 0 
+    for cc in collection:
+        name = cc[0]
+	if name == author:
+		cnt += 1
+    authors_cnt += [ ( author, cnt ) ]
 
+authors_cnt.sort( key=lambda x: x[1], reverse=True )
+
+for row in authors_cnt:
+    print "%s  %s" % ( str(row[1]).rjust(4), row[0] ) 
+
+#
 # 更新個別作者的頁面
+#
+print "==== 更新個別作者的頁面 ========================="
 authors = list_authors()
 for author in authors:
     page_of_author = process_page_per_author(author)
@@ -381,18 +381,56 @@ for author in authors:
     user_head, page_of_author_orig = page_split_by_keyword( get_page_content(page), "[[toc]]" )
 
     if page_of_author == page_of_author_orig:
-	continue
+        # 內容沒有變動，跳過不更新
+        continue
 
     page_of_author = user_head + page_of_author # 加上保留的使用者編輯內容
- 
-    name = author
-    if name in formal_name.keys():
-        name = formal_name[name]
+
+    author_data = find_author_by_name( author )
+    name = author_data['rel_name']
 
     title = name + "的聚會手記"
 
-    print "To view: http://www.hackingthursday.org/%s" % page
+    print "更新個人頁面: %s/%s" % ( root_url, page )
     proxy.pages.save_one({'site': site, 'page': page, 'title': title, 'content': page_of_author})
+    collect_notify( author )
+
+#
+# Calucate user statics
+#
+ary_local  = list_authors()
+ary_remote = []
+for user_page in user_pages:
+	user = user_page[5:]
+	ary_remote += [ user ]
+
+ary_all = set( ary_local + ary_remote )
+
+ary_local_gt_remote = []
+ary_local_eq_remote = []
+ary_local_lt_remote = []
+
+for item in ary_all:
+	if item in ary_local and item in ary_remote:
+		ary_local_eq_remote += [ item ]
+	elif item in ary_local and not item in ary_remote:
+		ary_local_gt_remote += [ item ]
+	elif not item in ary_local and item in ary_remote:
+		ary_local_lt_remote += [ item ]
+	else:
+		print "例外: %s" % item 
+
+print "== 本地有，遠端有 ======================"
+for x in ary_local_eq_remote:
+	print "%s/user:%s" % ( root_url, x )
+print "== 本地有，遠端沒有 ===================="
+for x in ary_local_gt_remote:
+	print "%s/user:%s" % ( root_url, x )
+print "== 本地沒有，遠端有 ===================="
+for x in ary_local_lt_remote:
+	print "%s/user:%s" % ( root_url, x )
+print "========================================"
+
 
 # 展開作者列表
 page_of_index = make_index_of_authors()
@@ -415,3 +453,16 @@ if k_start >= 0 and k_end >= 0 and k_end > k_start:
 
     #print new_nav_top_content
     proxy.pages.save_one({'site': site, 'page': nav_page, 'content': new_nav_top_content})
+
+
+#
+# 通知作者有頁面更新
+#
+print "==== 通知作者有頁面更新 =================================="
+for author in collection3:
+    author_data = find_author_by_name( author )
+    rel_name = author_data['rel_name']
+    url_name = author_data['url_name']
+    email    = author_data['email']
+
+    print 'To nofity: "%s" <%s> , %s/user:%s ' % ( rel_name, email, root_url, url_name )
