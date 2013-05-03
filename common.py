@@ -162,6 +162,14 @@ def read_settings_from_file():
             volatile_settings['googledoc_spreadsheet'] = config.get('googledoc', 'spreadsheet')
             volatile_settings['googledoc_worksheet'] = config.get('googledoc', 'worksheet')
 
+	    value = config.get('googledoc', 'dryrun')
+            value = value.strip().lower()
+            if value in ["yes","y","true","on"]:
+		value = True
+	    else:
+		value = False
+            volatile_settings['googledoc_dryrun'] = value
+
         except:
             pass
 
@@ -315,7 +323,7 @@ def fetch_googledoc_spreadsheet( email, password, spreadsheet_name, worksheet_na
       value   = item[2]
 
       if row_idx == "1":
-	col_mapping[col_idx] = value
+	col_mapping[col_idx] = value.strip()
 
     # 處理並產生回傳陣列
     for item in res_ary:
@@ -333,3 +341,29 @@ def fetch_googledoc_spreadsheet( email, password, spreadsheet_name, worksheet_na
         result_ary[row_idx][col_name] = value          
 
     return result_ary
+
+
+def convert_spreadsheet_to_userdata( sprd_data ):
+  result = []
+
+  for k in sprd_data.keys():
+	row = sprd_data[k]
+       
+        alias    = row['筆名'].split('||')
+        url_name = row['url_name']
+        rel_name = row['Name'].lower().strip()
+	email    = row['E-Mail']
+	notify   = row['notify']
+
+	result.append( 
+			{
+			"alias"     : alias,
+			"url_name"  : url_name,
+			"rel_name"  : rel_name,
+			"email"     : email,
+			"notify"    : notify,
+			}
+		   )
+
+  return result
+

@@ -10,6 +10,7 @@
 #
 
 from xmlrpclib import ServerProxy
+import common
 from common import *
 import re
 import os
@@ -29,6 +30,11 @@ api_key  = volatile_settings['wikidot_api_key']
 site     = 'hackingthursday'
 root_url = 'http://www.hackingthursday.org'
 proxy    = ServerProxy('https://' + api_user + ':' + api_key + '@www.wikidot.com/xml-rpc-api.php')
+googledoc_user = volatile_settings['googledoc_email']
+googledoc_pass = volatile_settings['googledoc_password']
+spreadsheet    = volatile_settings['googledoc_spreadsheet']
+worksheet      = volatile_settings['googledoc_worksheet']
+dryrun       = volatile_settings['googledoc_dryrun']
 
 #
 # 程式資料結構
@@ -36,7 +42,8 @@ proxy    = ServerProxy('https://' + api_user + ':' + api_key + '@www.wikidot.com
 collection    = []
 collection2   = []
 collection3   = []
-user_mapping  = user_data.data
+user_mapping  = []
+authors_cnt   = [] 
 
 #
 # 將頁面資料從 wikidot 下載到本地端
@@ -229,6 +236,11 @@ def make_index_of_authors():
 * [# H4ckers]
 """
     authors = list_authors()
+    authors2 = []
+    for au in authors:
+	if get_author_cnt( au.lower() ) > 0:
+		authors2.append( au )
+    authors = authors2
 
     #en_char = "abcdefghijklmnopqrstuvwxyz"
     data_dict = {
@@ -334,10 +346,22 @@ def page_split_by_keyword( text, keyword ):
 
         return head, body
 
+def get_author_cnt( rel_name ):
+	global authors_cnt
+
+	cnt = -1 
+	for row in authors_cnt:
+            if row[0] == rel_name:
+		cnt = row[1]
+
+	return cnt
+
 #
 # Main routine below
 #
 
+user_mapping_pre = fetch_googledoc_spreadsheet( googledoc_user, googledoc_pass, spreadsheet, worksheet )
+user_mapping     = convert_spreadsheet_to_userdata( user_mapping_pre )
 
 # 列出要處理的頁面
 user_pages = wikidot_list_user_pages( proxy, site )
@@ -357,7 +381,6 @@ for page in date_pages:
 # 
 print "==== 列出每個作者的統計資訊 ============================"
 authors = list_authors()
-authors_cnt = [] 
 for author in authors:
     cnt = 0 
     for cc in collection:
@@ -380,9 +403,10 @@ for author in authors:
     page_of_author = process_page_per_author(author)
     page = "user:" + author.lower()
     user_head, page_of_author_orig = page_split_by_keyword( get_page_content(page), "[[toc]]" )
+    cnt = get_author_cnt( author.lower() )
 
-    if page_of_author == page_of_author_orig:
-        # 內容沒有變動，跳過不更新
+    if page_of_author == page_of_author_orig or cnt <= 0:
+        # 內容沒有變動，或無個人筆記的，跳過不更新
         continue
 
     # 顯示差異的部分
@@ -406,7 +430,9 @@ for author in authors:
     title = name + "的聚會手記"
 
     print "更新個人頁面: %s/%s" % ( root_url, page )
-    proxy.pages.save_one({'site': site, 'page': page, 'title': title, 'content': page_of_author})
+    if dryrun != True:
+	    proxy.pages.save_one({'site': site, 'page': page, 'title': title, 'content': page_of_author})
+    
     collect_notify( author )
 
 #
@@ -466,8 +492,53 @@ if k_start >= 0 and k_end >= 0 and k_end > k_start:
     new_nav_top_content = nav_top_content[0:k_start] + page_of_index + nav_top_content[k_end:]
 
     #print new_nav_top_content
-    proxy.pages.save_one({'site': site, 'page': nav_page, 'content': new_nav_top_content})
+    if dryrun != True:
+	    proxy.pages.save_one({'site': site, 'page': nav_page, 'content': new_nav_top_content})
 
+
+def send_notify_mail( author ):
+    author_data = find_author_by_name( author )
+    rel_name = author_data['rel_name']
+    url_name = author_data['url_name']
+    email    = author_data['email']
+
+    Sender  = googledoc_user  # 值日生的 email
+    Reciver = email
+    Subject = "H4個人頁面更新通知"
+    Link    = "%s/user:%s" % ( root_url, url_name )
+    
+    Html = """
+<html>
+    <head>
+        <title>%s</title>
+    </head>
+    <body>
+    <a href="%s">%s</a>
+    <pre>
+Hi %s 您好:
+
+關於您在 H4 的個人手記有新的
+內容嘍~(網址如上) 歡迎您有空
+再來 H4 逛逛~!
+
+備註: 
+這是 H4 值日生們新推出的小功
+能，bot 會將大家的筆記，依個
+別作排序跟整理在 wiki 上。
+
+若您有任何問題或是建議，都歡
+迎 feedback 給我們，謝謝!!
+    </pre>
+    </body>
+</html>
+"""  % ( Subject, Link, Link, rel_name )
+
+    Txt = common.html2txt(Html)
+
+    receivers = Reciver.split(',')
+    for item in receivers:
+        receiver = item.strip()
+        common.send_gmail(Sender, receiver, Subject, Txt, Html, googledoc_user, googledoc_pass )
 
 #
 # 通知作者有頁面更新
@@ -478,5 +549,16 @@ for author in collection3:
     rel_name = author_data['rel_name']
     url_name = author_data['url_name']
     email    = author_data['email']
+    notify   = author_data['notify']
+    notify_enable  = False
 
-    print 'To nofity: "%s" <%s> , %s/user:%s ' % ( rel_name, email, root_url, url_name )
+    if notify.lower().strip() in [ "on", "v", "o", "yes", "y" ]:
+	notify_enable = True
+
+    if notify_enable:
+	    print 'To nofity: "%s" <%s> , %s/user:%s ' % ( rel_name, email, root_url, url_name )
+	    if dryrun != True:
+		send_notify_mail( author )
+    else:
+	    print '  skiping: "%s" <%s> , %s/user:%s ' % ( rel_name, email, root_url, url_name )
+
