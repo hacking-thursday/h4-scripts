@@ -2,9 +2,7 @@ import logging
 from cloghandler import ConcurrentRotatingFileHandler
 import os
 
-#LOGFILE = '/home/yan/hackingthursday/h4.log'
-LOGFILE = os.path.join(os.getenv('HOME'), 'h4.log')
-#LOGFILE = os.path.join(os.path.dirname(__file__), 'h4.log')
+LOGFILE = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'h4.log')
 
 
 class Logger():
