@@ -16,7 +16,6 @@ import re
 import os
 import subprocess
 import tempfile
-import user_data
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 cache_dir = os.path.join(ROOT, "cache")
