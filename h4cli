@@ -8,6 +8,7 @@
 #
 
 import argparse
+from common import *
 
 
 if __name__ == '__main__':
@@ -28,13 +29,27 @@ if __name__ == '__main__':
     parser.add_argument('params', nargs='*' , help='參數' )
 
     args = parser.parse_args()
-    print args
+    #print args
 
     if args.action not in [ ["search"], ["rebuild"], ["invite"], ["notify"], ["newpage"], ]:
 	parser.print_help()
 
     elif args.action == ["search"]:
 	print "搜尋通訊錄", args.params
+        read_settings_from_file()
+	googledoc_user = volatile_settings['googledoc_email']
+	googledoc_pass = volatile_settings['googledoc_password']
+	spreadsheet    = volatile_settings['googledoc_spreadsheet']
+	worksheet      = volatile_settings['googledoc_worksheet']
+
+	result = fetch_googledoc_spreadsheet( googledoc_user, googledoc_pass, spreadsheet, worksheet )
+	for keyword in args.params:
+		result = search_userdata( result, keyword )
+
+	for k in result.keys():
+		row = result[k]
+		print "="*60
+		show_userdata( row )
 
     elif args.action == ["rebuild"]:
 	print "更新 wiki 個人頁面", args.params
