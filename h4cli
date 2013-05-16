@@ -17,18 +17,37 @@ if __name__ == '__main__':
     parser.add_argument('-n' , '--dry-run' , help='跳過會寫入的動作', dest='dryrun'      , action='store_true' )
     parser.add_argument('-v' , '--verbose' , help='顯示更詳細的訊息', dest='verbose'     , action='store_true' )
 
-    # Actions
-    parser.add_argument('--invite-fb'       , help='動作: 發送聚會通告到 facebook' , dest='act_invite_fb'       , action='store_true' )
-    parser.add_argument('--invite-ptt'      , help='動作: 發送聚會通告到 ptt'      , dest='act_invite_ptt'      , action='store_true' )
-    parser.add_argument('--invite-email'    , help='動作: 發送聚會通告到 email'    , dest='act_invite_email'    , action='store_true' )
+    # 進階選項
+    parser.add_argument('--fb'    , help='使用 facebook' , dest='use_fb'    , action='store_true' )
+    parser.add_argument('--ptt'   , help='使用 ptt'      , dest='use_ptt'   , action='store_true' )
+    parser.add_argument('--email' , help='使用 email'    , dest='use_email' , action='store_true' )
+    parser.add_argument('--wiki'  , help='使用 wiki'     , dest='use_wiki'  , action='store_true' )
 
-    parser.add_argument('--wiki-notify'     , help='動作: 發送 wiki 聚會手記'     , dest='act_wiki_notify'     , action='store_true' )
-    parser.add_argument('--wiki-rebuild'    , help='動作: 更新 wiki 個人頁面'     , dest='act_wiki_rebuild'    , action='store_true' )
-    parser.add_argument('--wiki-new'        , help='動作: 新建 wiki 當週頁面'     , dest='act_wiki_new'        , action='store_true' )
-    parser.add_argument('--wiki-genidx'     , help='動作: 更新 wiki 選單列表'     , dest='act_wiki_genidx'     , action='store_true' )
-
-    parser.add_argument('--etherpad-notify' , help='動作: 提醒 etherpad 上有更新' , dest='act_etherpad_notify' , action='store_true' )
+    # 動作跟參數
+    parser.add_argument('action', nargs=1   , help='動作: search | rebuild | invite | notify | newpage ' )
+    parser.add_argument('params', nargs='*' , help='參數' )
 
     args = parser.parse_args()
-
     print args
+
+    if args.action not in [ ["search"], ["rebuild"], ["invite"], ["notify"], ["newpage"], ]:
+	parser.print_help()
+
+    elif args.action == ["search"]:
+	print "搜尋通訊錄", args.params
+
+    elif args.action == ["rebuild"]:
+	print "更新 wiki 個人頁面", args.params
+
+    elif args.action == ["invite"]:
+	print "發送聚會通告", args.params
+
+    elif args.action == ["notify"]:
+	print "發送 wiki 聚會手記", args.params
+
+    elif args.action == ["newpage"]:
+	print "新建 wiki 當週頁面", args.params
+
+    else:
+	pass
+
