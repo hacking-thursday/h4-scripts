@@ -6,5 +6,5 @@
 *.pyc
 *.rej
 /3rd/
-/cache/
-/logs/
+/_cache/
+/_logs/

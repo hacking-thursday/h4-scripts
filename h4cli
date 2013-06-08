@@ -29,7 +29,7 @@ if __name__ == '__main__':
     parser.add_argument('params', nargs='*' , help='參數' )
 
     args = parser.parse_args()
-    #print args
+    #print args; exit()
 
     if args.action not in [ ["search"], ["rebuild"], ["invite"], ["notify"], ["newpage"], ]:
 	parser.print_help()
@@ -56,6 +56,14 @@ if __name__ == '__main__':
 
     elif args.action == ["invite"]:
 	print "發送聚會通告", args.params
+	if args.use_fb:
+		print "發送聚會通告 -> FB", args.params
+
+	if args.use_ptt:
+		print "發送聚會通告 -> PTT", args.params
+
+	if args.use_email:
+		print "發送聚會通告 -> Mailling list", args.params
 
     elif args.action == ["notify"]:
 	print "發送 wiki 聚會手記", args.params

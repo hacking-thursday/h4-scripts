@@ -4,7 +4,7 @@
 import sys
 from Config import Config
 from Logger import Logger
-import facebook_unofficial_api
+import Facebook
 from NetworkTest import NetworkTest
 import time
 
@@ -24,7 +24,7 @@ if __name__ == '__main__':
         else:
             sys.exit(1)
 
-    f = facebook_unofficial_api.Facebook()
+    f = Facebook.Facebook()
 
     if f.login():
         if DEBUG:
