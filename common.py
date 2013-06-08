@@ -338,6 +338,11 @@ def fetch_googledoc_spreadsheet( email, password, spreadsheet_name, worksheet_na
 		result_ary[row_idx][col_name] = ''
 
         col_name = col_mapping[col_idx]
+
+	# 修正手機的格式
+	if col_name == "Mobile" and value.__len__() ==9:
+		value = "0"+value
+
         result_ary[row_idx][col_name] = value          
 
     return result_ary
@@ -366,4 +371,34 @@ def convert_spreadsheet_to_userdata( sprd_data ):
 		   )
 
   return result
+
+def search_userdata( sprd_data, keyword ):
+	result = {}
+	for k in sprd_data.keys():
+		row = sprd_data[k]
+		for value in row.values():
+			if value.find( keyword ) >= 0:
+				result[k] = row
+
+	return result
+
+def show_userdata( sprd_data_row ):
+  field00 = sprd_data_row['url_name']
+  field01 = sprd_data_row['Name']
+  field02 = sprd_data_row['Full Name']
+  field03 = sprd_data_row['E-Mail']
+  field04 = sprd_data_row['Mobile']
+  field05 = sprd_data_row['筆名']
+  field06 = sprd_data_row['notify']
+  field07 = sprd_data_row['備註']
+
+
+  print "ID".rjust(10)     , ":" , field00
+  print "Nick".rjust(10)   , ":" , field01
+  print "姓名".rjust(12)   , ":" , field02
+  print "E-mail".rjust(10) , ":" , field03
+  print "手機".rjust(12)   , ":" , field04
+  print "筆名".rjust(12)   , ":" , field05.replace('||',', ')
+  print "notify".rjust(10) , ":" , field06
+  print "備註".rjust(12)   , ":" , field07
 

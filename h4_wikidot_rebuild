@@ -424,15 +424,24 @@ for author in authors:
     page_of_author = user_head + page_of_author # 加上保留的使用者編輯內容
 
     author_data = find_author_by_name( author )
-    name = author_data['rel_name']
+    name   = author_data['rel_name']
+    notify = author_data['notify']
+
+    notify_enable  = False
+    if notify.lower().strip() in [ "on", "v", "o", "yes", "y" ]:
+	notify_enable = True
 
     title = name + "的聚會手記"
 
     print "更新個人頁面: %s/%s" % ( root_url, page )
     if dryrun != True:
+        if notify_enable == True:
 	    proxy.pages.save_one({'site': site, 'page': page, 'title': title, 'content': page_of_author})
+            collect_notify( author )
+	else:
+            print "Notify 未開通: %s => %s/%s" % ( author, root_url, page )
+	
     
-    collect_notify( author )
 
 #
 # Calucate user statics
@@ -524,6 +533,14 @@ Hi %s 您好:
 這是 H4 值日生們新推出的小功
 能，bot 會將大家的筆記，依個
 別作排序跟整理在 wiki 上。
+
+備註2:
+個人頁面 "Table of Contents"
+以上的部份是可以編輯的。歡迎
+您編輯個人相關資訊及連結!! 
+( Table of Contents 以下的部
+份則是會由 bot 定期產生並覆
+蓋 )
 
 若您有任何問題或是建議，都歡
 迎 feedback 給我們，謝謝!!

@@ -1,0 +1,68 @@
+#!/usr/bin/env python
+# coding=utf8
+#
+# 建立 CLI 命令列界面，整合指令的使用方式
+#
+# Author: Chun-Yu Lee (Mat) <matlinuxer2@gmail.com>
+# License: MIT
+#
+
+import argparse
+from common import *
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+
+    # 通用選項
+    parser.add_argument('-n' , '--dry-run' , help='跳過會寫入的動作', dest='dryrun'      , action='store_true' )
+    parser.add_argument('-v' , '--verbose' , help='顯示更詳細的訊息', dest='verbose'     , action='store_true' )
+
+    # 進階選項
+    parser.add_argument('--fb'    , help='使用 facebook' , dest='use_fb'    , action='store_true' )
+    parser.add_argument('--ptt'   , help='使用 ptt'      , dest='use_ptt'   , action='store_true' )
+    parser.add_argument('--email' , help='使用 email'    , dest='use_email' , action='store_true' )
+    parser.add_argument('--wiki'  , help='使用 wiki'     , dest='use_wiki'  , action='store_true' )
+
+    # 動作跟參數
+    parser.add_argument('action', nargs=1   , help='動作: search | rebuild | invite | notify | newpage ' )
+    parser.add_argument('params', nargs='*' , help='參數' )
+
+    args = parser.parse_args()
+    #print args
+
+    if args.action not in [ ["search"], ["rebuild"], ["invite"], ["notify"], ["newpage"], ]:
+	parser.print_help()
+
+    elif args.action == ["search"]:
+	print "搜尋通訊錄", args.params
+        read_settings_from_file()
+	googledoc_user = volatile_settings['googledoc_email']
+	googledoc_pass = volatile_settings['googledoc_password']
+	spreadsheet    = volatile_settings['googledoc_spreadsheet']
+	worksheet      = volatile_settings['googledoc_worksheet']
+
+	result = fetch_googledoc_spreadsheet( googledoc_user, googledoc_pass, spreadsheet, worksheet )
+	for keyword in args.params:
+		result = search_userdata( result, keyword )
+
+	for k in result.keys():
+		row = result[k]
+		print "="*60
+		show_userdata( row )
+
+    elif args.action == ["rebuild"]:
+	print "更新 wiki 個人頁面", args.params
+
+    elif args.action == ["invite"]:
+	print "發送聚會通告", args.params
+
+    elif args.action == ["notify"]:
+	print "發送 wiki 聚會手記", args.params
+
+    elif args.action == ["newpage"]:
+	print "新建 wiki 當週頁面", args.params
+
+    else:
+	pass
+
