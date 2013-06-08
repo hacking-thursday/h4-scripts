@@ -20,16 +20,16 @@ import libxml2
 import StringIO
 
 import tempfile
-import html2text
 
 import re
 import string
 import sys
 
 root_path = os.path.abspath( os.path.dirname(__file__) )
-incl_path = os.path.join( root_path, '3rd','gdata-python-client','src' )
-sys.path.append( incl_path )
+sys.path.append( os.path.join( root_path, '3rd' ) )
+sys.path.append( os.path.join( root_path, '3rd','gdata-python-client','src' ) )
 
+import html2text
 import gdata.spreadsheet.service
 import gdata.service
 import atom.service

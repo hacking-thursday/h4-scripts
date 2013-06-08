@@ -18,7 +18,7 @@ import subprocess
 import tempfile
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-cache_dir = os.path.join(ROOT, "cache")
+cache_dir = os.path.join(ROOT, "_cache")
 
 #
 # 程式參數
