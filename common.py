@@ -22,6 +22,19 @@ import StringIO
 import tempfile
 import html2text
 
+import re
+import string
+import sys
+
+root_path = os.path.abspath( os.path.dirname(__file__) )
+incl_path = os.path.join( root_path, '3rd','gdata-python-client','src' )
+sys.path.append( incl_path )
+
+import gdata.spreadsheet.service
+import gdata.service
+import atom.service
+import gdata.spreadsheet
+import atom
 
 def thisThursday():
     delta_days = 4 - datetime.date.today().isoweekday()
@@ -109,6 +122,8 @@ volatile_settings = {
     'facebook_gid' : '############',
     'bbs_user': 'guest',
     'bbs_pass' : '',
+    'googledoc_email': '',
+    'googledoc_password' : '',
 }
 
 
@@ -140,6 +155,20 @@ def read_settings_from_file():
 	    # Section: bbs
             volatile_settings['bbs_user'] = config.get('bbs', 'user')
             volatile_settings['bbs_pass'] = config.get('bbs', 'pass')
+
+	    # Section: googledoc
+            volatile_settings['googledoc_email'] = config.get('googledoc', 'email')
+            volatile_settings['googledoc_password'] = config.get('googledoc', 'password')
+            volatile_settings['googledoc_spreadsheet'] = config.get('googledoc', 'spreadsheet')
+            volatile_settings['googledoc_worksheet'] = config.get('googledoc', 'worksheet')
+
+	    value = config.get('googledoc', 'dryrun')
+            value = value.strip().lower()
+            if value in ["yes","y","true","on"]:
+		value = True
+	    else:
+		value = False
+            volatile_settings['googledoc_dryrun'] = value
 
         except:
             pass
@@ -237,3 +266,104 @@ def get_etherpad_content_body(URL):
     result = the_html
 
     return result
+
+def fetch_googledoc_spreadsheet( email, password, spreadsheet_name, worksheet_name ):
+    gd_client                     = gdata.spreadsheet.service.SpreadsheetsService()
+    gd_client.email               = email
+    gd_client.password            = password
+    gd_client.source              = ''
+    curr_key                      = ''
+    curr_wksht_id                 = ''
+    list_feed                     = None
+    res_ary                       = []
+    col_mapping                   = {}
+    result_ary                    = {}
+
+    def find_id_by_keyword( feed, keyword ):
+      ret_data = None
+  
+      for i, entry in enumerate(feed.entry):
+        #print ( i, entry.title.text, entry.content.text )
+        if entry.title.text == keyword:
+          ret_data = str(i)
+  
+      return ret_data
+
+    # 先取得 API 登入
+    gd_client.ProgrammaticLogin()
+
+    # 設定 spreadsheet
+    feed = gd_client.GetSpreadsheetsFeed()
+    input = find_id_by_keyword( feed, spreadsheet_name )
+    id_parts = feed.entry[string.atoi(input)].id.text.split('/')
+    curr_key = id_parts[len(id_parts) - 1]
+
+    # 設定 worksheet
+    feed = gd_client.GetWorksheetsFeed(curr_key)
+    input = find_id_by_keyword( feed, worksheet_name )
+    id_parts = feed.entry[string.atoi(input)].id.text.split('/')
+    curr_wksht_id = id_parts[len(id_parts) - 1]
+
+    # 取得列表內容
+    feed = gd_client.GetCellsFeed(curr_key, curr_wksht_id)
+    for i, entry in enumerate(feed.entry):
+      #print ( i, entry.title.text, entry.content.text )
+      pattern = "(\w)(\d+)"
+      matches = re.findall( pattern, entry.title.text )
+      #print matches
+      col_idx = matches[0][0]
+      row_idx = matches[0][1]
+
+      res_ary.append( ( row_idx, col_idx, entry.content.text ) )
+
+    # 取得欄位名稱對應
+    for item in res_ary:
+      row_idx = item[0]
+      col_idx = item[1]
+      value   = item[2]
+
+      if row_idx == "1":
+	col_mapping[col_idx] = value.strip()
+
+    # 處理並產生回傳陣列
+    for item in res_ary:
+      row_idx = item[0]
+      col_idx = item[1]
+      value   = item[2]
+
+      if row_idx != '1':
+	if result_ary.has_key( row_idx ) == False:
+          result_ary[row_idx] = {}
+          for col_name in col_mapping.values():
+		result_ary[row_idx][col_name] = ''
+
+        col_name = col_mapping[col_idx]
+        result_ary[row_idx][col_name] = value          
+
+    return result_ary
+
+
+def convert_spreadsheet_to_userdata( sprd_data ):
+  result = []
+
+  for k in sprd_data.keys():
+	row = sprd_data[k]
+       
+        alias    = row['筆名'].split('||')
+        url_name = row['url_name']
+        rel_name = row['Name'].lower().strip()
+	email    = row['E-Mail']
+	notify   = row['notify']
+
+	result.append( 
+			{
+			"alias"     : alias,
+			"url_name"  : url_name,
+			"rel_name"  : rel_name,
+			"email"     : email,
+			"notify"    : notify,
+			}
+		   )
+
+  return result
+
