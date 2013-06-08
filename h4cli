@@ -52,24 +52,25 @@ if __name__ == '__main__':
 		show_userdata( row )
 
     elif args.action == ["rebuild"]:
-	print "更新 wiki 個人頁面", args.params
+	print "更新 wiki 個人頁面", args.params # 用來取代 h4_wikidot_rebuild, h4_wikidot_indexing
 
     elif args.action == ["invite"]:
 	print "發送聚會通告", args.params
 	if args.use_fb:
-		print "發送聚會通告 -> FB", args.params
+		print "發送聚會通告 -> FB", args.params # 用來取代 h4_create_fb_event.py
 
 	if args.use_ptt:
-		print "發送聚會通告 -> PTT", args.params
+		print "發送聚會通告 -> PTT", args.params # 用來取代 h4_post_ptt_event_telnetlib.py
 
 	if args.use_email:
-		print "發送聚會通告 -> Mailling list", args.params
+		print "發送聚會通告 -> Mailling list", args.params # 用來取代 h4_invitation_notifier
 
     elif args.action == ["notify"]:
-	print "發送 wiki 聚會手記", args.params
+	print "發送 wiki 聚會手記", args.params # 用來取代 h4_wiki_notifier
+
 
     elif args.action == ["newpage"]:
-	print "新建 wiki 當週頁面", args.params
+	print "新建 wiki 當週頁面", args.params # 用來取代 h4_wikidot_page_creater
 
     else:
 	pass

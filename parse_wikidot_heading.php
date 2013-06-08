@@ -1,7 +1,6 @@
 <?php
 error_reporting( 0 );
 define( 'WIKIDOT_ROOT', dirname(__FILE__).'/3rd/wikidot');
-//require_once( '/home/live/Programming/wikidot/lib/Text_Wiki/Text/Wiki.php' );
 require_once( WIKIDOT_ROOT.'/php/utils/WikiTransformation.php' );
 require_once( WIKIDOT_ROOT.'/php/utils/WDStringUtils.php' );
 
@@ -23,11 +22,7 @@ function get_opt_val( $options, $short_opt, $long_opt, $default ){
 
 $shortopts = "";
 $longopts  = array();
-// 檔案路徑
-{
-	$shortopts .= "f:";  
-	array_push( $longopts, "file:" );
-}
+$shortopts .= "f:";  array_push( $longopts, "file:" ); // 檔案路徑
 $options = getopt($shortopts, $longopts);
 
 $file_path = get_opt_val( $options, "f", "file", "" );
