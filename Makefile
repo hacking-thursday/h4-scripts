@@ -1,5 +1,5 @@
 help:  # 顯示命令列表
-	@cat Makefile | grep -e '^\(\w*\):' | sed -e 's/^\(\w*\):.*#\(.*\)/make \1 \t #\2/g'
+	@cat Makefile | grep -e '^\([[:alpha:]].*\):' | sed -e 's/^\(.*\):.*#\(.*\)/make \1 \t #\2/g'
 
 setup: # 安裝 dependencies
 	test -d _logs || mkdir _logs
