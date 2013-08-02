@@ -41,6 +41,7 @@ dryrun       = volatile_settings['googledoc_dryrun']
 collection    = []
 collection2   = []
 collection3   = []
+collection4   = []
 user_mapping  = []
 authors_cnt   = [] 
 
@@ -118,6 +119,11 @@ def collect_notify( url_name ):
     global collection3
 
     collection3 += [ url_name ]
+
+def collect_unnotify( url_name ):
+    global collection4
+
+    collection4 += [ url_name ]
 
 
 def normalize_alias( alias ):
@@ -243,12 +249,14 @@ def make_index_of_authors():
 
     #en_char = "abcdefghijklmnopqrstuvwxyz"
     data_dict = {
-        "abcd": [],
-        "efgh": [],
-        "ijkl": [],
-        "mnop": [],
-        "qrst": [],
-        "uvwx": [],
+        "abc": [],
+        "def": [],
+        "ghi": [],
+        "jkl": [],
+        "mno": [],
+        "pqr": [],
+        "stu": [],
+        "vwx": [],
         "yz": [],
     }
     data_dict_nonen = []
@@ -440,6 +448,7 @@ for author in authors:
             collect_notify( author )
 	else:
             print "Notify 未開通: %s => %s/%s" % ( author, root_url, page )
+            collect_unnotify( author )
 	
     
 
@@ -578,3 +587,10 @@ for author in collection3:
     else:
 	    print '  skiping: "%s" <%s> , %s/user:%s ' % ( rel_name, email, root_url, url_name )
 
+print "==== 未對應之作者    =================================="
+for item in collection2:
+	print "%s/%s '%s' " % ( root_url, item[0], item[1] )
+
+print "==== 未開通之作者    =================================="
+for item in collection4:
+	print item
