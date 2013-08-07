@@ -36,6 +36,8 @@ import atom.service
 import gdata.spreadsheet
 import atom
 
+import GoogleSpreadsheetAPI
+
 def thisThursday():
     delta_days = 4 - datetime.date.today().isoweekday()
     this_thursday = datetime.date.today() + datetime.timedelta(days=delta_days)
@@ -268,44 +270,15 @@ def get_etherpad_content_body(URL):
     return result
 
 def fetch_googledoc_spreadsheet( email, password, spreadsheet_name, worksheet_name ):
-    gd_client                     = gdata.spreadsheet.service.SpreadsheetsService()
-    gd_client.email               = email
-    gd_client.password            = password
-    gd_client.source              = ''
-    curr_key                      = ''
-    curr_wksht_id                 = ''
-    list_feed                     = None
     res_ary                       = []
     col_mapping                   = {}
     result_ary                    = {}
 
-    def find_id_by_keyword( feed, keyword ):
-      ret_data = None
-  
-      for i, entry in enumerate(feed.entry):
-        #print ( i, entry.title.text, entry.content.text )
-        if entry.title.text == keyword:
-          ret_data = str(i)
-  
-      return ret_data
-
-    # 先取得 API 登入
-    gd_client.ProgrammaticLogin()
-
-    # 設定 spreadsheet
-    feed = gd_client.GetSpreadsheetsFeed()
-    input = find_id_by_keyword( feed, spreadsheet_name )
-    id_parts = feed.entry[string.atoi(input)].id.text.split('/')
-    curr_key = id_parts[len(id_parts) - 1]
-
-    # 設定 worksheet
-    feed = gd_client.GetWorksheetsFeed(curr_key)
-    input = find_id_by_keyword( feed, worksheet_name )
-    id_parts = feed.entry[string.atoi(input)].id.text.split('/')
-    curr_wksht_id = id_parts[len(id_parts) - 1]
-
     # 取得列表內容
-    feed = gd_client.GetCellsFeed(curr_key, curr_wksht_id)
+    spr = GoogleSpreadsheetAPI.Spreadsheet(email, password, spreadsheet_name)
+    work = GoogleSpreadsheetAPI.Spreadsheet.Worksheet(spr, worksheet_name)
+    feed = work.getCells()
+
     for i, entry in enumerate(feed.entry):
       #print ( i, entry.title.text, entry.content.text )
       pattern = "(\w)(\d+)"
@@ -343,7 +316,7 @@ def fetch_googledoc_spreadsheet( email, password, spreadsheet_name, worksheet_na
 	if col_name == "Mobile" and value.__len__() ==9:
 		value = "0"+value
 
-        result_ary[row_idx][col_name] = value          
+        result_ary[row_idx][col_name] = value
 
     return result_ary
 
@@ -353,14 +326,14 @@ def convert_spreadsheet_to_userdata( sprd_data ):
 
   for k in sprd_data.keys():
 	row = sprd_data[k]
-       
+
         alias    = row['筆名'].split('||')
         url_name = row['url_name']
         rel_name = row['Name'].lower().strip()
 	email    = row['E-Mail']
 	notify   = row['notify']
 
-	result.append( 
+	result.append(
 			{
 			"alias"     : alias,
 			"url_name"  : url_name,
