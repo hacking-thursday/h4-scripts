@@ -6,6 +6,8 @@ from Config import Config
 import urllib
 import urllib2
 import json
+from facebook_unofficial_api import Facebook
+
 
 logger = Logger('fb').__new__()
 
@@ -19,12 +21,17 @@ class FacebookGraph():
     def __init__(self):
         self.GRAPH_URL = "https://graph.facebook.com/"
 
-        self.ACCESS_TOKEN = Config()['facebook']['access_token']
         self.id = Config()['facebook']['group_id']  # '126789270714326'
+
+        # get access token
+        f = Facebook()
+        f.login()
+        self.ACCESS_TOKEN = f.getAccessToken()
 
     def create_event(self, title, description, start_time, end_time):
         _query = '/events'
         url = self.GRAPH_URL + self.id + _query
+        print url
 
         data = urllib.urlencode({'name': title,
                         'description': description,
