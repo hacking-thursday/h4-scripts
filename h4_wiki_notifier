@@ -12,6 +12,7 @@
 import common
 import sys
 from xmlrpclib import ServerProxy
+from Gmail import Gmail
 
 common.read_settings_from_file()
 
@@ -128,4 +129,6 @@ if __name__ == "__main__":
     receivers = Reciver.split(',')
     for item in receivers:
         receiver = item.strip()
-        common.send_gmail(Sender, receiver, Subject, Txt, Html, username, password)
+
+        gmail = Gmail(username, password)
+        gmail.send(Sender, receiver, Subject, Txt, Html)
