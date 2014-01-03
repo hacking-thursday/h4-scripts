@@ -19,4 +19,4 @@ class Config():
 
     def Set(self, section, key, value):
         self.cf.set(section, key, value)
-        self.cf.write(open(self.CONFIG_FILE, 'wb'))
+        self.cf.write(open(CONFIG_FILE, 'wb'))
