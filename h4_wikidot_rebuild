@@ -543,6 +543,8 @@ Hi %s 您好:
 能，bot 會將大家的筆記，依個
 別作排序跟整理在 wiki 上。
 
+%s
+
 備註2:
 個人頁面 "Table of Contents"
 以上的部份是可以編輯的。歡迎
@@ -556,7 +558,7 @@ Hi %s 您好:
     </pre>
     </body>
 </html>
-"""  % ( Subject, Link, Link, rel_name )
+"""  % ( Subject, Link, Link, rel_name, root_url+"h4note" )
 
     Txt = common.html2txt(Html)
 
