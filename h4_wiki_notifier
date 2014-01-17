@@ -117,7 +117,7 @@ Html = """
     </head>
     <body>
     <pre>""" + MailContentHeader + """</pre>
-    <a herf='""" + WikidotNoteURL + """'>""" + WikidotNoteURL + """</a>
+    """ + WikidotNoteURL + """
     <pre>""" + MailContentFooter + """</pre>
     </body>
 </html>
