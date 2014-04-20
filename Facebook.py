@@ -40,7 +40,7 @@ class Facebook():
             self.uid = self.getUID()
 
             if self.uid:
-                print 'use token'
+                print( 'use token' )
                 return
 
         # 重新獲取 Token
@@ -50,7 +50,7 @@ class Facebook():
             self.uid = self.getUID()
 
             if self.uid:
-                print 'login to facebook'
+                print( 'login to facebook' )
                 return
             else:
                 raise Exception("get uid error")

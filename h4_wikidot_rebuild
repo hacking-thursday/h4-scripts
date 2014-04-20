@@ -66,10 +66,10 @@ def pull_and_cache_pages(site, pages):
                 for p in exist_pages:
                     if p[:page.__len__()] == page:
                         p_path = os.path.join(cache_dir, p)
-                        print "Remove duplicate: ", p
+                        print(  "Remove duplicate: ", p )
                         os.remove(p_path)
 
-                print "Fetching page: ", page, " ..."
+                print(  "Fetching page: ", page, " ..." )
                 the_page = proxy.pages.get_one({"site": site, "page": page})
                 content = the_page["content"].encode('utf8')
                 f = open(page_file, 'w')
@@ -178,7 +178,7 @@ def partition_page(page):
 
     for i in range(0, content_rows.__len__()):
         line = content_rows[i]
-        #print i,": ", line
+        #print(  i,": ", line )
         result = re.findall('^\+ (.*)\s*$', line)
         if result.__len__() > 0:
             heading = result[0]
@@ -214,10 +214,10 @@ def parse_data_from_page(page):
             author_data = find_author_by_heading( heading )
             if author_data != None:
                 author = author_data['url_name']
-                print "mapped  :: %s/%s :: %s => %s " % ( root_url, page, heading, author )
+                print(  "mapped  :: %s/%s :: %s => %s " % ( root_url, page, heading, author ) )
                 append_data_per_author(author, page, data)
             else:
-                print "unmapped:: %s/%s :: %s " % ( root_url, page, heading )
+                print(  "unmapped:: %s/%s :: %s " % ( root_url, page, heading ) )
                 collect_unmapped_headding( heading, page ) 
 
 
@@ -243,8 +243,8 @@ def make_index_of_authors():
     authors = list_authors()
     authors2 = []
     for au in authors:
-	if get_author_cnt( au.lower() ) > 0:
-		authors2.append( au )
+        if get_author_cnt( au.lower() ) > 0:
+                authors2.append( au )
     authors = authors2
 
     #en_char = "abcdefghijklmnopqrstuvwxyz"
@@ -285,9 +285,9 @@ def make_index_of_authors():
             rel_name = author_data['rel_name']
 
             if item.lower() == rel_name.lower() or rel_name.strip() == "":
-		    name = "%s" % ( item )
+                    name = "%s" % ( item )
             else:
-		    name = "%s (%s)" % ( rel_name, item )
+                    name = "%s (%s)" % ( rel_name, item )
 
             result += "  * [[[user:" + item + "|" + name + "]]]\n"
 
@@ -297,7 +297,7 @@ def make_index_of_authors():
 """
 
     for item in data_dict_nonen:
-        print "非英文項目: ", item
+        print(  "非英文項目: ", item )
 
     return result
 
@@ -354,14 +354,14 @@ def page_split_by_keyword( text, keyword ):
         return head, body
 
 def get_author_cnt( rel_name ):
-	global authors_cnt
+        global authors_cnt
 
-	cnt = -1 
-	for row in authors_cnt:
+        cnt = -1 
+        for row in authors_cnt:
             if row[0] == rel_name:
-		cnt = row[1]
+                cnt = row[1]
 
-	return cnt
+        return cnt
 
 #
 # Main routine below
@@ -373,38 +373,38 @@ user_mapping     = convert_spreadsheet_to_userdata( user_mapping_pre )
 # 列出要處理的頁面
 user_pages = wikidot_list_user_pages( proxy, site )
 date_pages = wikidot_list_date_pages( proxy, site )
-print "Fetching 聚會手記..."
+print(  "Fetching 聚會手記..." )
 pull_and_cache_pages(site, date_pages )  # 下載聚會手記相關的頁面
-print "Fetching 個人頁面..."
+print(  "Fetching 個人頁面..." )
 pull_and_cache_pages(site, user_pages )  # 下載個人頁面相關的頁面
 
 date_pages.sort(reverse=True)  # 將最新日期放在最前面
 for page in date_pages:
-    print "處理頁面: ", page
+    print(  "處理頁面: ", page )
     parse_data_from_page(page)
 
 # 
 # 列出每個作者的統計資訊
 # 
-print "==== 列出每個作者的統計資訊 ============================"
+print(  "==== 列出每個作者的統計資訊 ============================" )
 authors = list_authors()
 for author in authors:
     cnt = 0 
     for cc in collection:
         name = cc[0]
-	if name == author:
-		cnt += 1
+        if name == author:
+                cnt += 1
     authors_cnt += [ ( author, cnt ) ]
 
 authors_cnt.sort( key=lambda x: x[1], reverse=True )
 
 for row in authors_cnt:
-    print "%s  %s" % ( str(row[1]).rjust(4), row[0] ) 
+    print(  "%s  %s" % ( str(row[1]).rjust(4), row[0] )  )
 
 #
 # 更新個別作者的頁面
 #
-print "==== 更新個別作者的頁面 ========================="
+print(  "==== 更新個別作者的頁面 =========================" )
 authors = list_authors()
 for author in authors:
     page_of_author = process_page_per_author(author)
@@ -425,9 +425,9 @@ for author in authors:
     out = subprocess.Popen( cmd, shell=True, stdout=subprocess.PIPE ).communicate()[0]
     os.unlink( tmp_old )
     os.unlink( tmp_new )
-    print "==== %s 新舊差異的部分 ===========" % author
-    print out
-    print "=================================="
+    print(  "==== %s 新舊差異的部分 ===========" % author )
+    print(  out )
+    print(  "==================================" )
 
     page_of_author = user_head + page_of_author # 加上保留的使用者編輯內容
 
@@ -437,19 +437,19 @@ for author in authors:
 
     notify_enable  = False
     if notify.lower().strip() in [ "on", "v", "o", "yes", "y" ]:
-	notify_enable = True
+        notify_enable = True
 
     title = name + "的聚會手記"
 
-    print "更新個人頁面: %s/%s" % ( root_url, page )
+    print(  "更新個人頁面: %s/%s" % ( root_url, page ) )
     if dryrun != True:
         if notify_enable == True:
-	    proxy.pages.save_one({'site': site, 'page': page, 'title': title, 'content': page_of_author})
+            proxy.pages.save_one({'site': site, 'page': page, 'title': title, 'content': page_of_author})
             collect_notify( author )
-	else:
-            print "Notify 未開通: %s => %s/%s" % ( author, root_url, page )
+        else:
+            print(  "Notify 未開通: %s => %s/%s" % ( author, root_url, page ) )
             collect_unnotify( author )
-	
+        
     
 
 #
@@ -458,8 +458,8 @@ for author in authors:
 ary_local  = list_authors()
 ary_remote = []
 for user_page in user_pages:
-	user = user_page[5:]
-	ary_remote += [ user ]
+        user = user_page[5:]
+        ary_remote += [ user ]
 
 ary_all = set( ary_local + ary_remote )
 
@@ -468,30 +468,30 @@ ary_local_eq_remote = []
 ary_local_lt_remote = []
 
 for item in ary_all:
-	if item in ary_local and item in ary_remote:
-		ary_local_eq_remote += [ item ]
-	elif item in ary_local and not item in ary_remote:
-		ary_local_gt_remote += [ item ]
-	elif not item in ary_local and item in ary_remote:
-		ary_local_lt_remote += [ item ]
-	else:
-		print "例外: %s" % item 
+        if item in ary_local and item in ary_remote:
+                ary_local_eq_remote += [ item ]
+        elif item in ary_local and not item in ary_remote:
+                ary_local_gt_remote += [ item ]
+        elif not item in ary_local and item in ary_remote:
+                ary_local_lt_remote += [ item ]
+        else:
+                print(  "例外: %s" % item  )
 
-print "== 本地有，遠端有 ======================"
+print(  "== 本地有，遠端有 ======================" )
 for x in ary_local_eq_remote:
-	print "%s/user:%s" % ( root_url, x )
-print "== 本地有，遠端沒有 ===================="
+        print(  "%s/user:%s" % ( root_url, x ) )
+print(  "== 本地有，遠端沒有 ====================" )
 for x in ary_local_gt_remote:
-	print "%s/user:%s" % ( root_url, x )
-print "== 本地沒有，遠端有 ===================="
+        print(  "%s/user:%s" % ( root_url, x ) )
+print(  "== 本地沒有，遠端有 ====================" )
 for x in ary_local_lt_remote:
-	print "%s/user:%s" % ( root_url, x )
-print "========================================"
+        print(  "%s/user:%s" % ( root_url, x ) )
+print(  "========================================" )
 
 
 # 展開作者列表
 page_of_index = make_index_of_authors()
-print page_of_index
+print(  page_of_index )
 
 # 將作者列表塞到主選單中
 nav_page = "nav:top"
@@ -510,7 +510,7 @@ if k_start >= 0 and k_end >= 0 and k_end > k_start:
 
     #print new_nav_top_content
     if dryrun != True:
-	    proxy.pages.save_one({'site': site, 'page': nav_page, 'content': new_nav_top_content})
+            proxy.pages.save_one({'site': site, 'page': nav_page, 'content': new_nav_top_content})
 
 
 def send_notify_mail( author ):
@@ -570,7 +570,7 @@ Hi %s 您好:
 #
 # 通知作者有頁面更新
 #
-print "==== 通知作者有頁面更新 =================================="
+print(  "==== 通知作者有頁面更新 ==================================" )
 for author in collection3:
     author_data = find_author_by_name( author )
     rel_name = author_data['rel_name']
@@ -580,19 +580,19 @@ for author in collection3:
     notify_enable  = False
 
     if notify.lower().strip() in [ "on", "v", "o", "yes", "y" ]:
-	notify_enable = True
+        notify_enable = True
 
     if notify_enable:
-	    print 'To nofity: "%s" <%s> , %s/user:%s ' % ( rel_name, email, root_url, url_name )
-	    if dryrun != True:
-		send_notify_mail( author )
+            print(  'To nofity: "%s" <%s> , %s/user:%s ' % ( rel_name, email, root_url, url_name ) )
+            if dryrun != True:
+                send_notify_mail( author )
     else:
-	    print '  skiping: "%s" <%s> , %s/user:%s ' % ( rel_name, email, root_url, url_name )
+            print(  '  skiping: "%s" <%s> , %s/user:%s ' % ( rel_name, email, root_url, url_name ) )
 
-print "==== 未對應之作者    =================================="
+print(  "==== 未對應之作者    ==================================" )
 for item in collection2:
-	print "%s/%s '%s' " % ( root_url, item[0], item[1] )
+        print(  "%s/%s '%s' " % ( root_url, item[0], item[1] ) )
 
-print "==== 未開通之作者    =================================="
+print(  "==== 未開通之作者    ==================================" )
 for item in collection4:
-	print item
+        print(  item )

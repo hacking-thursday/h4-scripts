@@ -154,22 +154,22 @@ def read_settings_from_file():
             volatile_settings['facebook_secret'] = config.get('facebook', 'facebook_secret')
             volatile_settings['facebook_gid'] = config.get('facebook', 'facebook_gid')
 
-	    # Section: bbs
+            # Section: bbs
             volatile_settings['bbs_user'] = config.get('bbs', 'user')
             volatile_settings['bbs_pass'] = config.get('bbs', 'pass')
 
-	    # Section: googledoc
+            # Section: googledoc
             volatile_settings['googledoc_email'] = config.get('googledoc', 'email')
             volatile_settings['googledoc_password'] = config.get('googledoc', 'password')
             volatile_settings['googledoc_spreadsheet'] = config.get('googledoc', 'spreadsheet')
             volatile_settings['googledoc_worksheet'] = config.get('googledoc', 'worksheet')
 
-	    value = config.get('googledoc', 'dryrun')
+            value = config.get('googledoc', 'dryrun')
             value = value.strip().lower()
             if value in ["yes","y","true","on"]:
-		value = True
-	    else:
-		value = False
+                value = True
+            else:
+                value = False
             volatile_settings['googledoc_dryrun'] = value
 
         except:
@@ -296,7 +296,7 @@ def fetch_googledoc_spreadsheet( email, password, spreadsheet_name, worksheet_na
       value   = item[2]
 
       if row_idx == "1":
-	col_mapping[col_idx] = value.strip()
+        col_mapping[col_idx] = value.strip()
 
     # 處理並產生回傳陣列
     for item in res_ary:
@@ -305,16 +305,16 @@ def fetch_googledoc_spreadsheet( email, password, spreadsheet_name, worksheet_na
       value   = item[2]
 
       if row_idx != '1':
-	if result_ary.has_key( row_idx ) == False:
+        if result_ary.has_key( row_idx ) == False:
           result_ary[row_idx] = {}
           for col_name in col_mapping.values():
-		result_ary[row_idx][col_name] = ''
+                result_ary[row_idx][col_name] = ''
 
         col_name = col_mapping[col_idx]
 
-	# 修正手機的格式
-	if col_name == "Mobile" and value.__len__() ==9:
-		value = "0"+value
+        # 修正手機的格式
+        if col_name == "Mobile" and value.__len__() ==9:
+                value = "0"+value
 
         result_ary[row_idx][col_name] = value
 
@@ -325,35 +325,35 @@ def convert_spreadsheet_to_userdata( sprd_data ):
   result = []
 
   for k in sprd_data.keys():
-	row = sprd_data[k]
+        row = sprd_data[k]
 
         alias    = row['筆名'].split('||')
         url_name = row['url_name']
         rel_name = row['Name'].lower().strip()
-	email    = row['E-Mail']
-	notify   = row['notify']
+        email    = row['E-Mail']
+        notify   = row['notify']
 
-	result.append(
-			{
-			"alias"     : alias,
-			"url_name"  : url_name,
-			"rel_name"  : rel_name,
-			"email"     : email,
-			"notify"    : notify,
-			}
-		   )
+        result.append(
+                        {
+                        "alias"     : alias,
+                        "url_name"  : url_name,
+                        "rel_name"  : rel_name,
+                        "email"     : email,
+                        "notify"    : notify,
+                        }
+                   )
 
   return result
 
 def search_userdata( sprd_data, keyword ):
-	result = {}
-	for k in sprd_data.keys():
-		row = sprd_data[k]
-		for value in row.values():
-			if value.find( keyword ) >= 0:
-				result[k] = row
+        result = {}
+        for k in sprd_data.keys():
+                row = sprd_data[k]
+                for value in row.values():
+                        if value.find( keyword ) >= 0:
+                                result[k] = row
 
-	return result
+        return result
 
 def show_userdata( sprd_data_row ):
   field00 = sprd_data_row['url_name']
@@ -366,12 +366,12 @@ def show_userdata( sprd_data_row ):
   field07 = sprd_data_row['備註']
 
 
-  print "ID".rjust(10)     , ":" , field00
-  print "Nick".rjust(10)   , ":" , field01
-  print "姓名".rjust(12)   , ":" , field02
-  print "E-mail".rjust(10) , ":" , field03
-  print "手機".rjust(12)   , ":" , field04
-  print "筆名".rjust(12)   , ":" , field05.replace('||',', ')
-  print "notify".rjust(10) , ":" , field06
-  print "備註".rjust(12)   , ":" , field07
+  print( "ID".rjust(10)     , ":" , field00 )
+  print( "Nick".rjust(10)   , ":" , field01 )
+  print( "姓名".rjust(12)   , ":" , field02 )
+  print( "E-mail".rjust(10) , ":" , field03 )
+  print( "手機".rjust(12)   , ":" , field04 )
+  print( "筆名".rjust(12)   , ":" , field05.replace('||',', ') )
+  print( "notify".rjust(10) , ":" , field06 )
+  print( "備註".rjust(12)   , ":" , field07 )
 

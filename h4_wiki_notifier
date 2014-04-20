@@ -22,11 +22,11 @@ if sys.argv.__len__() == 2:
     PartyDate = sys.argv[1]
 
 if common.isThursday(PartyDate) is False:
-    print "Error: ", PartyDate, " is not Thursday..."
+    print( "Error: ", PartyDate, " is not Thursday..." )
     exit()
 
 if common.isFuture(PartyDate) is True:
-    print "Error: ", PartyDate, " is in the future..."
+    print( "Error: ", PartyDate, " is in the future..." )
     exit()
 
 api_user          = common.volatile_settings['wikidot_api_user']
@@ -103,9 +103,9 @@ if foundReturn < 0:
         #print new_nav_top_content
         s.pages.save_one({'site': site, 'page': page2, 'content': new_nav_top_content})
 else:
-    print "頁面的對應選單項目已建立"
+    print( "頁面的對應選單項目已建立" )
 
-print 'To view : http://www.hackingthursday.org/%s' % (page2)
+print( 'To view : http://www.hackingthursday.org/%s' % (page2) )
 
 ################################################################################
 # 寄通知信
