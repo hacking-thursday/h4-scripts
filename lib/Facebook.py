@@ -13,7 +13,6 @@ import simplejson
 
 
 # config variable
-# CLIENT_ID = '120190928021712'  # yan_consoel_f_b_client
 CLIENT_ID = '164519640405083'  # h4bot
 
 # static variable
@@ -25,13 +24,13 @@ class Facebook():
         cj = cookielib.CookieJar()
 
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
-        opener.addheaders = [('Referer', 'http://m.facebook.com/'),
-                            ('Content-Type', 'application/x-www-form-urlencoded'),
-                            ('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.1.7) Gecko/20091221 Firefox/3.5.7 (.NET CLR 3.5.30729)')]
+        opener.addheaders = [('Host', 'www.facebook.com'),
+                            ('User-Agent', 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.17 Safari/537.36'),
+                            ('Referer', 'https://www.facebook.com/')]
 
         self.opener = opener
 
-        usock = self.opener.open('http://m.facebook.com')
+        usock = self.opener.open('http://www.facebook.com')
 
         # 嘗試確定快取 Token 可用
         if access_token:
@@ -40,7 +39,7 @@ class Facebook():
             self.uid = self.getUID()
 
             if self.uid:
-                print( 'use token' )
+                print 'use token'
                 return
 
         # 重新獲取 Token
@@ -50,36 +49,38 @@ class Facebook():
             self.uid = self.getUID()
 
             if self.uid:
-                print( 'login to facebook' )
+                print 'login to facebook'
                 return
             else:
                 raise Exception("get uid error")
         else:
             raise Exception("login to Facebook error")
 
-    def _login(self, email, passwd):
-        url = 'https://m.facebook.com/login.php'
+    def _login(self, email, password):
+        url = 'https://www.facebook.com/login.php?login_attempt=1'
 
-        data = "email=%s&pass=%s" % (email, passwd)
+        data = "locale=en_US&lsd=%s&lgnrnd=215019_4mpx&lgnjs=1400475025&email=%s&pass=%s" % ('AVoy-05c', email, password)
 
         usock = self.opener.open(url, data)
         line = usock.read()
 
         # print line
 
-        if "Logout" in line:
+        if "Redirecting" in line or "Logout" in line:
             # print 'logged in'
 
             return True
         else:
             # print 'failed login'
 
-            #print usock.read()
+            # print usock.read()
 
             return False
 
     def _getToken(self):
         url = 'https://www.facebook.com/dialog/oauth?client_id=%s&redirect_uri=http://www.facebook.com/connect/login_success.html&response_type=token' % CLIENT_ID
+        # print url
+
         usock = self.opener.open(url)
 
         line = usock.read()
