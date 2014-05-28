@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import telnetlib
@@ -9,19 +8,14 @@ def big5(str):
 
 
 class PTT():
-    def __init__(self, id, password, debug=False):
-        self.id = id
-        self.password = password
-
+    def __init__(self, debug=False):
         self.tn = telnetlib.Telnet('ptt.cc')
         if debug:
             self.tn.set_debuglevel(2)
         self.tn.read_until('guest')
 
-        self._login()
-
-    def _login(self):
-        self.tn.write('%s\r%s\r' % (self.id, self.password))
+    def login(self, id, password):
+        self.tn.write('%s\r%s\r' % (id, password))
 
         while True:
             line = self.tn.read_very_eager()
@@ -35,8 +29,9 @@ class PTT():
             elif big5('分組討論區') in line:
                 print '登入成功，進入主頁面'
                 return True
-
-        return False
+            elif big5('密碼不對') in line:
+                print '登入失敗'
+                return False
 
     # 進入討論版
     def enter(self, board):
@@ -47,9 +42,11 @@ class PTT():
         self.tn.read_until(big5('請按任意鍵繼續'))
         self.tn.write('\r')
 
-        self.tn.read_until(big5('文章選讀'))
+        if self.tn.read_until(big5('文章選讀')):
+            print '進入 %s 版' % board
+            return True
 
-        print '進入 %s 版' % board
+        return False
 
     def post(self, subject, content):
         # 發表文章
@@ -71,33 +68,23 @@ class PTT():
         self.tn.read_until(big5('任意鍵繼續'))
         self.tn.write('\r')
 
-        self.tn.read_until(big5('文章選讀'))
+        if self.tn.read_until(big5('文章選讀')):
+            print '文章發布'
+            return True
 
-        print '文章發布'
+        return False
 
     def quit(self):
-        self.tn.write('eee')
-        self.tn.write('ee')
-        self.tn.write('g')
-        self.tn.write('\r')
-        self.tn.write('y')
-        self.tn.write('\r')
-        self.tn.write('\r\r')
+        while True:
+            self.tn.write('e')
+            line = self.tn.read_very_eager()
 
-        print '離開 BBS'
-
-        # sess_op = tn.read_all()
-        # print sess_op
-
-if __name__ == '__main__':
-    ID = ''
-    PASSWORD = ''
-
-    board = 'Test'
-    subject = '[活動] 2008-08-21 固定聚會'
-    content = '1234\n測試內容\n5678'
-
-    ptt = PTT(ID, PASSWORD)
-    ptt.enter(board)
-    ptt.post(subject, content)
-    ptt.quit()
+            if big5('離開') in line:
+                self.tn.write('g')
+                self.tn.write('\r')
+                self.tn.read_until(big5('您確定要離開'))
+                self.tn.write('y')
+                self.tn.write('\r')
+                self.tn.read_until(big5('此次停留時間'))
+                print '離開 BBS'
+                return True
