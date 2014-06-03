@@ -39,4 +39,13 @@ chkpy2: # 檢查 python2 語法
 		python2 -m py_compile $$ff ;\
 	done
 
+test: # 函式庫測試
+	nosetests --exe -v test
+
+test_print:  # 函式庫測試及輸出 STDOUT
+	nosetests --nocapture --exe -v test
+
+
 .SILENT: clean
+
+.PHONY: all test clean
