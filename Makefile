@@ -6,6 +6,8 @@ setup: # 安裝 dependencies
 	test -d 3rd || mkdir 3rd
 	test -d 3rd/wikidot/ || ( cd 3rd; git clone git://github.com/gabrys/wikidot.git )
 	test -d 3rd/gdata-python-client/ || ( cd 3rd; hg clone http://code.google.com/p/gdata-python-client/ )
+	pip install -r nosetests
+	sudo apt-get install -y tidy
 
 run-wiki:   # wididot 之個人頁面 rebuild
 	./h4_wikidot_rebuild 2>&1 | tee _logs/h4_wikidot_rebuild_$$(date "+%Y-%m-%d_%H%M%S").log
