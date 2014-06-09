@@ -1,21 +1,22 @@
 # -*- coding: utf-8 -*-
 
 import common
+from Config import Config
 from PTT import PTT
 
-ID = ''
-PASSWORD = ''
+id = Config()['bbs']['user']
+password = Config()['bbs']['pass']
 
-board = 'Test'
-subject = '[活動] 2008-08-21 固定聚會'
-content = '1234\n測試內容\n5678'
+board = 'Test'  # 討論版名稱
+subject = Config()['test']['subject']
+content = Config()['test']['content']
 
 
 client = PTT()
 
 
 def test_login():
-    assert client.login(ID, PASSWORD)
+    assert client.login(id, password)
 
 
 def test_enter():

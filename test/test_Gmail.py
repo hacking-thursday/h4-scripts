@@ -1,24 +1,25 @@
 # -*- coding: utf-8 -*-
 
 import common
+from Config import Config
 from Gmail import Gmail
 
-USERNAME = ''
-PASSWORD = ''
+username = Config()['gmail']['username']
+password = Config()['gmail']['password']
 
-subject = '[活動] 2008-08-21 固定聚會'
-content = '1234\n測試內容\n5678'
+subject = Config()['test']['subject']
+content = Config()['test']['html_content']
 
 
 client = Gmail()
 
 
 def test_login():
-    assert client.login(USERNAME, PASSWORD)
+    assert client.login(username, password)
 
 
 def test_send():
-    assert client.send(USERNAME, USERNAME, subject, content) == {}
+    assert client.send(username, username, subject, html=content) == {}
 
 
 def test_quit():
