@@ -22,3 +22,9 @@ class Config():
     def Set(self, section, option, value):
         self.cf.set(section, option, value)
         self.cf.write(open(CONFIG_FILE, 'wb'))
+
+    def read_to_global(self, glob):  # must pass your globals()
+        for section in self.cf.sections():
+            for k, v in self.cf.items(section):
+                key = ('%s_%s' % (section, k)).upper()
+                glob[key] = v
