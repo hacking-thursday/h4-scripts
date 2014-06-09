@@ -1,11 +1,18 @@
 # 這個檔案用於 /etc/crontab 或是用 crontab -e 加在個人的 crontab
 
-# 於每週三的 12:25 時，建立頁面
-25 12 * * 3       /ABS_PATH_TO/h4_mailer_for_wikidot/h4_wikidot_page_creater
-# 於每週三的 12:30 時，發聚會通告信
-30 12 * * 3       /ABS_PATH_TO/h4_mailer_for_wikidot/h4_invitation_notifier
-# 於每週五的 10:30 時，發聚會手記
-30 10 * * 5       /ABS_PATH_TO/h4_mailer_for_wikidot/h4_wiki_notifier
+# 於每週一的 12:00 時，發聚會通告信
+00 12 * * 3       /ABS_PATH_TO/h4-scripts/h4_invitation_notifier
+# 於每週一的 12:02 時，建立 Facebook 活動事件
+02 12 * * 1       /ABS_PATH_TO/h4-scripts/h4_create_fb_event.py
+# 於每週一的 12:03 時，於 PTT Linux 討論版貼文公告
+03 12 * * 1       /ABS_PATH_TO/h4-scripts/h4_post_ptt_event_telnetlib.py > /tmp/h4.log
+# 於每週一的 12:05 時，建立頁面
+05 12 * * 1       /ABS_PATH_TO/h4-scripts/h4_wikidot_page_creater
+
+# 於每週五的 12:00 時，發聚會手記
+00 12 * * 5       /ABS_PATH_TO/h4_mailer_for_wikidot/h4_wiki_notifier
+# 於每週五的 12:02 時，整理 wikidot 個人手記
+02 12 * * 5       /ABS_PATH_TO/h4_wikidot_rebuild > /tmp/h4.log
+
 # 每 20 分鐘，寄出 etherpad 變更提醒
 */20 * * * *      /ABS_PATH_TO/h4_mailer_for_wikidot/h4_etherpad_notifier
-
