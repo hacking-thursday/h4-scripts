@@ -20,7 +20,7 @@ GRAPH_URL = 'https://graph.facebook.com'
 
 
 class Facebook():
-    def __init__(self, access_token=None, email=None, password=None):
+    def __init__(self):
         cj = cookielib.CookieJar()
 
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
@@ -32,31 +32,7 @@ class Facebook():
 
         usock = self.opener.open('http://www.facebook.com')
 
-        # 嘗試確定快取 Token 可用
-        if access_token:
-            self.token = access_token
-
-            self.uid = self.getUID()
-
-            if self.uid:
-                print 'use token'
-                return
-
-        # 重新獲取 Token
-        if self._login(email, password):
-            self.token = self._getToken()
-
-            self.uid = self.getUID()
-
-            if self.uid:
-                print 'login to facebook'
-                return
-            else:
-                raise Exception("get uid error")
-        else:
-            raise Exception("login to Facebook error")
-
-    def _login(self, email, password):
+    def login(self, email, password):
         url = 'https://www.facebook.com/login.php?login_attempt=1'
 
         data = "locale=en_US&lsd=%s&lgnrnd=215019_4mpx&lgnjs=1400475025&email=%s&pass=%s" % ('AVoy-05c', email, password)
@@ -67,17 +43,17 @@ class Facebook():
         # print line
 
         if "Redirecting" in line or "Logout" in line:
-            # print 'logged in'
+            # print 'login to facebook'
 
             return True
         else:
-            # print 'failed login'
+            # print 'login failed'
 
             # print usock.read()
 
             return False
 
-    def _getToken(self):
+    def get_token(self):
         url = 'https://www.facebook.com/dialog/oauth?client_id=%s&redirect_uri=http://www.facebook.com/connect/login_success.html&response_type=token' % CLIENT_ID
         # print url
 
@@ -95,6 +71,18 @@ class Facebook():
         #     print token
 
         return token
+
+    def logout(self):
+        url = 'https://www.facebook.com/logout.php'
+
+        usock = self.opener.open(url)
+
+        line = usock.read()
+
+
+class Graph():
+    def __init__(self, access_token):
+        self.token = access_token
 
     def getUID(self):
         query = '/me'
