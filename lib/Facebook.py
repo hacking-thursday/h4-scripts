@@ -13,6 +13,7 @@ import simplejson
 
 
 # config variable
+# CLIENT_ID = '120190928021712'  # yan_consoel_f_b_client
 CLIENT_ID = '164519640405083'  # h4bot
 
 # static variable
@@ -25,8 +26,8 @@ class Facebook():
 
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
         opener.addheaders = [('Host', 'www.facebook.com'),
-                            ('User-Agent', 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.17 Safari/537.36'),
-                            ('Referer', 'https://www.facebook.com/')]
+                             ('User-Agent', 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.17 Safari/537.36'),
+                             ('Referer', 'https://www.facebook.com/')]
 
         self.opener = opener
 
@@ -55,8 +56,6 @@ class Facebook():
 
     def get_token(self):
         url = 'https://www.facebook.com/dialog/oauth?client_id=%s&redirect_uri=http://www.facebook.com/connect/login_success.html&response_type=token' % CLIENT_ID
-        # print url
-
         usock = self.opener.open(url)
 
         line = usock.read()
@@ -132,10 +131,10 @@ class Graph():
         url = GRAPH_URL + '/' + facebookid + query
 
         data = urllib.urlencode({'access_token': self.token,
-                        'name': title,
-                        'description': description,
-                        'start_time': start_time,  # 2013-09-13T07:30:00-0400  (19:30)
-                        'end_time': end_time})  # 2013-09-13T22:00:00-0400  (22:00)
+                                 'name': title,
+                                 'description': description,
+                                 'start_time': start_time,  # 2013-09-13T07:30:00-0400  (19:30)
+                                 'end_time': end_time})  # 2013-09-13T22:00:00-0400  (22:00)
 
         event_id = ''
         try:

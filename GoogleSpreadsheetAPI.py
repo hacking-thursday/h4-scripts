@@ -25,14 +25,14 @@ class Spreadsheet:
 
         feed = self.spr_client.GetSpreadsheetsFeed(query=q)
         if DEBUG:
-            print( feed )
-            print( '\n' )
-            print( feed.entry )
-            print( '\n' )
-            print( type(feed.entry) )
-            print( '\n' )
-            print( len(feed.entry) )
-            print( '\n' )
+            print(feed)
+            print('\n')
+            print(feed.entry)
+            print('\n')
+            print(type(feed.entry))
+            print('\n')
+            print(len(feed.entry))
+            print('\n')
 
         for f in feed.entry:
             spreadsheet_id = f.id.text.rsplit('/', 1)[1]
@@ -42,8 +42,8 @@ class Spreadsheet:
     def getWorksheetId(self):
         feed = self.spr_client.GetWorksheetsFeed(self.spreadsheet_id)
         if DEBUG:
-            print( feed )
-            print( '\n' )
+            print(feed)
+            print('\n')
 
         # worksheet_id = [{f.title.text: f.id.text.rsplit('/', 1)[1]} for f in feed.entry]
         worksheet_id = dict((f.title.text, f.id.text.rsplit('/', 1)[1]) for f in feed.entry)
@@ -99,7 +99,7 @@ class Spreadsheet:
 if __name__ == '__main__':
     # DEBUG = 1
     username = 'YOUR_EMAIL'
-    passwd   = 'YOUR_PASSWORD'
+    passwd = 'YOUR_PASSWORD'
     doc_name = 'YOU_GOOGLE_SPREADSHEET_FILENAME'
     sheet_name = 'WORKSHEET_NAME'
 

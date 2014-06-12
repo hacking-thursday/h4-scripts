@@ -25,9 +25,9 @@ import re
 import string
 import sys
 
-root_path = os.path.abspath( os.path.dirname(__file__) )
-sys.path.append( os.path.join( root_path, '3rd' ) )
-sys.path.append( os.path.join( root_path, '3rd','gdata-python-client','src' ) )
+root_path = os.path.abspath(os.path.dirname(__file__))
+sys.path.append(os.path.join(root_path, '3rd'))
+sys.path.append(os.path.join(root_path, '3rd', 'gdata-python-client', 'src'))
 
 import html2text
 import gdata.spreadsheet.service
@@ -37,6 +37,7 @@ import gdata.spreadsheet
 import atom
 
 import GoogleSpreadsheetAPI
+
 
 def thisThursday():
     delta_days = 4 - datetime.date.today().isoweekday()
@@ -112,20 +113,20 @@ else:
 
 volatile_settings = {
     'username': 'USERNAME',
-    'password' : 'PASSWORD',
-    'who' : 'who@gmail.com',
-    'email_address' : 'hackingthursday@googlegroups.com',
-    'wikidot_api_user' : 'WIKIDOT_API_USER',
-    'wikidot_api_key' : 'WIKIDOT_API_KEY',
-    'facebook_user' : 'FB_USER',
-    'facebook_password' : 'FB_PASS',
-    'facebook_api_key' : 'FB_API_KEY',
-    'facebook_secret' : 'FB_SECRET',
-    'facebook_gid' : '############',
+    'password': 'PASSWORD',
+    'who': 'who@gmail.com',
+    'email_address': 'hackingthursday@googlegroups.com',
+    'wikidot_api_user': 'WIKIDOT_API_USER',
+    'wikidot_api_key': 'WIKIDOT_API_KEY',
+    'facebook_user': 'FB_USER',
+    'facebook_password': 'FB_PASS',
+    'facebook_api_key': 'FB_API_KEY',
+    'facebook_secret': 'FB_SECRET',
+    'facebook_gid': '############',
     'bbs_user': 'guest',
-    'bbs_pass' : '',
+    'bbs_pass': '',
     'googledoc_email': '',
-    'googledoc_password' : '',
+    'googledoc_password': '',
 }
 
 
@@ -166,7 +167,7 @@ def read_settings_from_file():
 
             value = config.get('googledoc', 'dryrun')
             value = value.strip().lower()
-            if value in ["yes","y","true","on"]:
+            if value in ["yes", "y", "true", "on"]:
                 value = True
             else:
                 value = False
@@ -269,10 +270,11 @@ def get_etherpad_content_body(URL):
 
     return result
 
-def fetch_googledoc_spreadsheet( email, password, spreadsheet_name, worksheet_name ):
-    res_ary                       = []
-    col_mapping                   = {}
-    result_ary                    = {}
+
+def fetch_googledoc_spreadsheet(email, password, spreadsheet_name, worksheet_name):
+    res_ary = []
+    col_mapping = {}
+    result_ary = {}
 
     # 取得列表內容
     spr = GoogleSpreadsheetAPI.Spreadsheet(email, password, spreadsheet_name)
@@ -280,98 +282,96 @@ def fetch_googledoc_spreadsheet( email, password, spreadsheet_name, worksheet_na
     feed = work.getCells()
 
     for i, entry in enumerate(feed.entry):
-      #print ( i, entry.title.text, entry.content.text )
-      pattern = "(\w)(\d+)"
-      matches = re.findall( pattern, entry.title.text )
-      #print matches
-      col_idx = matches[0][0]
-      row_idx = matches[0][1]
+        #print (i, entry.title.text, entry.content.text)
+        pattern = "(\w)(\d+)"
+        matches = re.findall(pattern, entry.title.text)
+        #print matches
+        col_idx = matches[0][0]
+        row_idx = matches[0][1]
 
-      res_ary.append( ( row_idx, col_idx, entry.content.text ) )
+        res_ary.append((row_idx, col_idx, entry.content.text))
 
     # 取得欄位名稱對應
     for item in res_ary:
-      row_idx = item[0]
-      col_idx = item[1]
-      value   = item[2]
+        row_idx = item[0]
+        col_idx = item[1]
+        value = item[2]
 
-      if row_idx == "1":
-        col_mapping[col_idx] = value.strip()
+        if row_idx == "1":
+            col_mapping[col_idx] = value.strip()
 
     # 處理並產生回傳陣列
     for item in res_ary:
-      row_idx = item[0]
-      col_idx = item[1]
-      value   = item[2]
+        row_idx = item[0]
+        col_idx = item[1]
+        value = item[2]
 
-      if row_idx != '1':
-        if result_ary.has_key( row_idx ) == False:
-          result_ary[row_idx] = {}
-          for col_name in col_mapping.values():
-                result_ary[row_idx][col_name] = ''
+        if row_idx != '1':
+            if not row_idx in result_ary:
+                result_ary[row_idx] = {}
+                for col_name in col_mapping.values():
+                    result_ary[row_idx][col_name] = ''
 
-        col_name = col_mapping[col_idx]
+            col_name = col_mapping[col_idx]
 
-        # 修正手機的格式
-        if col_name == "Mobile" and value.__len__() ==9:
-                value = "0"+value
+            # 修正手機的格式
+            if col_name == "Mobile" and value.__len__() == 9:
+                    value = "0" + value
 
-        result_ary[row_idx][col_name] = value
+            result_ary[row_idx][col_name] = value
 
     return result_ary
 
 
-def convert_spreadsheet_to_userdata( sprd_data ):
-  result = []
+def convert_spreadsheet_to_userdata(sprd_data):
+    result = []
 
-  for k in sprd_data.keys():
+    for k in sprd_data.keys():
         row = sprd_data[k]
 
-        alias    = row['筆名'].split('||')
+        alias = row['筆名'].split('||')
         url_name = row['url_name']
         rel_name = row['Name'].lower().strip()
-        email    = row['E-Mail']
-        notify   = row['notify']
+        email = row['E-Mail']
+        notify = row['notify']
 
-        result.append(
-                        {
-                        "alias"     : alias,
-                        "url_name"  : url_name,
-                        "rel_name"  : rel_name,
-                        "email"     : email,
-                        "notify"    : notify,
-                        }
-                   )
+        result.append({
+            "alias": alias,
+            "url_name": url_name,
+            "rel_name": rel_name,
+            "email": email,
+            "notify": notify,
+        })
 
-  return result
+    return result
 
-def search_userdata( sprd_data, keyword ):
+
+def search_userdata(sprd_data, keyword):
         result = {}
         for k in sprd_data.keys():
                 row = sprd_data[k]
                 for value in row.values():
-                        if value.find( keyword ) >= 0:
+                        if value.find(keyword) >= 0:
                                 result[k] = row
 
         return result
 
-def show_userdata( sprd_data_row ):
-  field00 = sprd_data_row['url_name']
-  field01 = sprd_data_row['Name']
-  field02 = sprd_data_row['Full Name']
-  field03 = sprd_data_row['E-Mail']
-  field04 = sprd_data_row['Mobile']
-  field05 = sprd_data_row['筆名']
-  field06 = sprd_data_row['notify']
-  field07 = sprd_data_row['備註']
 
+def show_userdata(sprd_data_row):
+    field00 = sprd_data_row['url_name']
+    field01 = sprd_data_row['Name']
+    field02 = sprd_data_row['Full Name']
+    field03 = sprd_data_row['E-Mail']
+    field04 = sprd_data_row['Mobile']
+    field05 = sprd_data_row['筆名']
+    field06 = sprd_data_row['notify']
+    field07 = sprd_data_row['備註']
 
-  print( "ID".rjust(10)     , ":" , field00 )
-  print( "Nick".rjust(10)   , ":" , field01 )
-  print( "姓名".rjust(12)   , ":" , field02 )
-  print( "E-mail".rjust(10) , ":" , field03 )
-  print( "手機".rjust(12)   , ":" , field04 )
-  print( "筆名".rjust(12)   , ":" , field05.replace('||',', ') )
-  print( "notify".rjust(10) , ":" , field06 )
-  print( "備註".rjust(12)   , ":" , field07 )
-
+    print("ID".rjust(10), ":", field00)
+    print("Nick".rjust(10), ":", field01)
+    print("姓名".rjust(12), ":", field02)
+    print("E-mail".rjust(10), ":", field03)
+    print("手機".rjust(12), ":", field04)
+    print("筆名".rjust(12), ":", field05.replace('||', ', '))
+    print("notify".rjust(10), ":", field06)
+    print("備註".rjust(12), ":", field07)

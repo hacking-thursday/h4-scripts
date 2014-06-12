@@ -18,7 +18,8 @@ read_settings_from_file()
 api_user = volatile_settings['wikidot_api_user']
 api_key = volatile_settings['wikidot_api_key']
 
-s = ServerProxy('https://' + api_user + ':' + api_key + '@www.wikidot.com/xml-rpc-api.php')
+ep_url = 'www.wikidot.com/xml-rpc-api.php'
+s = ServerProxy('https://' + api_user + ':' + api_key + '@' + ep_url)
 
 tomorrow = thisThursday()
 
@@ -26,7 +27,7 @@ if sys.argv.__len__() == 2:
     tomorrow = sys.argv[1]
 
 if isThursday(tomorrow) is False:
-    print(  "Error: ", tomorrow, " is not Thursday..." )
+    print("Error: ", tomorrow, " is not Thursday...")
     exit()
 
 lastweek = prevThursday(tomorrow)
@@ -46,7 +47,7 @@ content = '''
 
 s.pages.save_one({'site': site, 'page': page, 'title': title, 'content': content})
 
-print( (  'To view : http://%s.wikidot.com/%s' % (site, page) ) )
+print(('To view : http://%s.wikidot.com/%s' % (site, page)))
 
 
 site = "hackingthursday"
@@ -67,6 +68,6 @@ if foundReturn < 0:
         #print(  new_nav_top_content )
         s.pages.save_one({'site': site, 'page': page2, 'content': new_nav_top_content})
 else:
-    print(  "頁面的對應選單項目已建立" )
+    print("頁面的對應選單項目已建立")
 
-print(  'To view : http://%s.wikidot.com/%s' % (site, page2) )
+print('To view : http://%s.wikidot.com/%s' % (site, page2))

@@ -22,30 +22,30 @@ if sys.argv.__len__() == 2:
     PartyDate = sys.argv[1]
 
 if common.isThursday(PartyDate) is False:
-    print( "Error: ", PartyDate, " is not Thursday..." )
+    print("Error: ", PartyDate, " is not Thursday...")
     exit()
 
 if common.isFuture(PartyDate) is True:
-    print( "Error: ", PartyDate, " is in the future..." )
+    print("Error: ", PartyDate, " is in the future...")
     exit()
 
-api_user          = common.volatile_settings['wikidot_api_user']
-api_key           = common.volatile_settings['wikidot_api_key']
-username          = common.volatile_settings['username']
-password          = common.volatile_settings['password']
-Sender            = common.volatile_settings['who']  # 值日生的 email
-Reciver           = common.volatile_settings['email_address']
-Subject           = "HackingThursday 聚會手記 (" + PartyDate + ")"
-WikidotNoteURL    = "http://www.hackingthursday.org/" + PartyDate
-EtherpadURL       = "http://sync.in/ep/pad/export/h4/latest?format=txt"
-lastweek          = common.prevThursday(PartyDate)
-nextweek          = common.nextThursday(PartyDate)
+api_user = common.volatile_settings['wikidot_api_user']
+api_key = common.volatile_settings['wikidot_api_key']
+username = common.volatile_settings['username']
+password = common.volatile_settings['password']
+Sender = common.volatile_settings['who']  # 值日生的 email
+Reciver = common.volatile_settings['email_address']
+Subject = "HackingThursday 聚會手記 (" + PartyDate + ")"
+WikidotNoteURL = "http://www.hackingthursday.org/" + PartyDate
+EtherpadURL = "http://sync.in/ep/pad/export/h4/latest?format=txt"
+lastweek = common.prevThursday(PartyDate)
+nextweek = common.nextThursday(PartyDate)
 
 MailContentHeader = common.mail_content_header
 MailContentFooter = common.mail_content_footer
 
 
-s                 = ServerProxy('https://' + api_user + ':' + api_key + '@www.wikidot.com/xml-rpc-api.php')
+s = ServerProxy('https://' + api_user + ':' + api_key + '@www.wikidot.com/xml-rpc-api.php')
 
 ##
 ## 先改成手動移動內容，順便 review 一下，以免誤發不合適的內容
@@ -103,9 +103,9 @@ if foundReturn < 0:
         #print new_nav_top_content
         s.pages.save_one({'site': site, 'page': page2, 'content': new_nav_top_content})
 else:
-    print( "頁面的對應選單項目已建立" )
+    print("頁面的對應選單項目已建立")
 
-print( 'To view : http://www.hackingthursday.org/%s' % (page2) )
+print('To view : http://www.hackingthursday.org/%s' % (page2))
 
 ################################################################################
 # 寄通知信
