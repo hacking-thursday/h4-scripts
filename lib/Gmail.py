@@ -8,6 +8,8 @@ from email.mime.text import MIMEText
 from email.MIMEBase import MIMEBase
 from email.Utils import formatdate
 from email import Encoders
+from email.Utils import COMMASPACE
+from itertools import chain
 
 HOST = "smtp.gmail.com"
 PORT = 587
@@ -25,12 +27,19 @@ class Gmail():
         except smtplib.SMTPAuthenticationError:
             return False
 
-    def send(self, sender, recipient, subject, text=None, html=None, files=[]):
+    def send(self, sender, recipient, subject, text=None, html=None, files=[], cc=[]):
         try:
             msg = MIMEMultipart("alternative")
 
+            if isinstance(recipient, str):
+                recipient = recipient.split(',')
+            if isinstance(cc, str):
+                recipient = recipient.split(',')
+
             msg['From'] = sender
-            msg['To'] = recipient
+            msg['To'] = COMMASPACE.join(recipient)
+            if cc:
+                msg['Cc'] = COMMASPACE.join(cc)
             msg['Date'] = formatdate(localtime=True)
             msg['Subject'] = Header(subject, "utf-8")
 
@@ -49,7 +58,7 @@ class Gmail():
                 msg.attach(part)
 
             # 寄出
-            return self.smtp.sendmail(sender, recipient, msg.as_string())
+            return self.smtp.sendmail(sender, list(chain(recipient, cc)), msg.as_string())
         except Exception, error:
             print "Unable to send e-mail: '%s'." % str(error)
 
