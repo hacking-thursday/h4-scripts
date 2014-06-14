@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# coding=utf8
+# encoding: utf-8
 
 #
 # 發送聚會通告
@@ -8,28 +8,25 @@
 # Copyright: 幸延 <a0726h77@gmail.com> || Chun-Yu Lee (Mat) <matlinuxer2@gmail.com>
 # License: MIT
 #
-import common
-from Gmail import Gmail
 
-common.read_settings_from_file()
+import common
+from lib.Config import Config
+from lib.Gmail import Gmail
 
 PartyDate = common.thisThursday()
 
-
-username = common.volatile_settings['username']
-password = common.volatile_settings['password']
-Sender = common.volatile_settings['who']  # 值日生的 email
-Reciver = common.volatile_settings['email_address']
-Subject = "HackingThursday 固定聚會 (" + PartyDate + ")"
+config = Config()
+username = config['gmail']['username']
+password = config['gmail']['password']
+Sender = config['hackingthursday']['who']  # 值日生的 email
+Reciver = config['hackingthursday']['email_address']
+Subject = "HackingThursday 固定聚會 (%s)" % PartyDate
 
 # 這裡改從網頁上將通告內文抓下來，以後改用網頁來更新通告。
 Html = common.get_wikidot_content_body("http://www.hackingthursday.org/invite")
 Txt = common.html2txt(Html)
 
 if __name__ == "__main__":
-    receivers = Reciver.split(',')
-    for item in receivers:
-        receiver = item.strip()
-
-        gmail = Gmail(username, password)
-        gmail.send(Sender, receiver, Subject, Txt, Html)
+    gmail = Gmail()
+    gmail.login(username, password)
+    gmail.send(Sender, Reciver, Subject, Txt, Html)
