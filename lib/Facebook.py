@@ -88,7 +88,7 @@ class Graph():
         data = 'fields=%s' % ('id')
         url = GRAPH_URL + query + '?access_token=' + self.token + '&' + data
 
-        uid = ''
+        uid = None
         try:
             connection = urllib2.urlopen(url)
             response = connection.read()
