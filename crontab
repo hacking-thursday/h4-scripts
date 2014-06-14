@@ -3,9 +3,9 @@
 # 於每週一的 12:00 時，發聚會通告信
 00 12 * * 3       /ABS_PATH_TO/h4-scripts/h4_invitation_notifier
 # 於每週一的 12:02 時，建立 Facebook 活動事件
-02 12 * * 1       /ABS_PATH_TO/h4-scripts/h4_create_fb_event.py
+02 12 * * 1       /ABS_PATH_TO/h4-scripts/h4_invitation_notifier_facebook.py
 # 於每週一的 12:03 時，於 PTT Linux 討論版貼文公告
-03 12 * * 1       /ABS_PATH_TO/h4-scripts/h4_post_ptt_event_telnetlib.py > /tmp/h4.log
+03 12 * * 1       /ABS_PATH_TO/h4-scripts/h4_invitation_notifier_ptt.py
 # 於每週一的 12:05 時，建立頁面
 05 12 * * 1       /ABS_PATH_TO/h4-scripts/h4_wikidot_page_creater
 
