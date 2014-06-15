@@ -44,11 +44,22 @@ class Wikidot():
             data['content'] = content
 
         self.proxy.pages.save_one(data)
+        if self.list_pages(page_url):
+            return True
+        else:
+            return False
 
     def get_page(self, page_url):
-        return self.proxy.pages.get_one({"site": self.site, "page": page_url})
+        try:
+            return self.proxy.pages.get_one({"site": self.site, "page": page_url})
+        except xmlrpclib.Fault:
+            # page does not exist
+            return False
 
     def get_pages_meta(self, page_url_arr):
+        if isinstance(page_url_arr, str):
+            page_url_arr = [page_url_arr]
+
         return self.proxy.pages.get_meta({"site": self.site, "pages": page_url_arr})
 
     def list_pages(self, filter=None):
