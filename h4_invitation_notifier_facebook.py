@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 import common
-from Logger import Logger
+from lib.Logger import Logger
 from lib.Config import Config
 from lib.Facebook import Facebook, Graph
 
