@@ -3,7 +3,6 @@
 
 #
 # 讓聚會前將 wikidot 頁面準備好
-# 請加入星期三的排程 :)
 #
 
 # Author: 幸延 <a0726h77@gmail.com>
@@ -13,23 +12,14 @@
 import sys
 from xmlrpclib import ServerProxy
 from common import *
+from lib.Config import Config
+from lib.Wikidot import Wikidot
 
-read_settings_from_file()
-api_user = volatile_settings['wikidot_api_user']
-api_key = volatile_settings['wikidot_api_key']
-
-ep_url = 'www.wikidot.com/xml-rpc-api.php'
-s = ServerProxy('https://' + api_user + ':' + api_key + '@' + ep_url)
+config = Config()
+user_app = config['wikidot']['wikidot_api_user']
+key = config['wikidot']['wikidot_api_key']
 
 tomorrow = thisThursday()
-
-if sys.argv.__len__() == 2:
-    tomorrow = sys.argv[1]
-
-if isThursday(tomorrow) is False:
-    print("Error: ", tomorrow, " is not Thursday...")
-    exit()
-
 lastweek = prevThursday(tomorrow)
 nextweek = nextThursday(tomorrow)
 site = 'hackingthursday'
@@ -45,29 +35,36 @@ content = '''
 [[/html]]
 ''' % (lastweek, nextweek)
 
-s.pages.save_one({'site': site, 'page': page, 'title': title, 'content': content})
+if __name__ == "__main__":
+    wikidot = Wikidot()
+    wikidot.auth(user_app, key)
+    wikidot.set_site(site)
 
-print(('To view : http://%s.wikidot.com/%s' % (site, page)))
+    # 如果頁面不存在，則建立當週筆記頁
+    if not wikidot.get_page(page):
+        if wikidot.save_page(page, title, content):
+            print(('To view : http://%s.wikidot.com/%s' % (site, page)))
+    else:
+        print("筆記頁面已建立")
 
+    # 更新上方選單項目
+    top_bar_page = "nav:top"
+    top_bar_title= 'Top Bar Menu'
+    target_keyword = u"* [# 聚會手記]\n"
+    note_page_link = u" * [[[" + tomorrow + "]]]\n"
 
-site = "hackingthursday"
-page2 = "nav:top"
-target_keyword = u"\n* [# 聚會手記] \n"
+    nav_top_page = wikidot.get_page(top_bar_page)
+    nav_top_content = nav_top_page["content"]
 
-nav_top_page = s.pages.get_one({"site": site, "page": page2})
-nav_top_content = nav_top_page["content"]
+    foundReturn = nav_top_content.find(tomorrow)
+    if foundReturn < 0:
+        k_start = nav_top_content.find(target_keyword)
+        if k_start >= 0:
+            k_end = k_start + len(target_keyword)
 
-foundReturn = nav_top_content.find(tomorrow)
-if foundReturn < 0:
-    k_start = nav_top_content.find(target_keyword)
-    if k_start >= 0:
-        k_end = k_start + target_keyword.__len__()
+            new_nav_top_content = nav_top_content[0:k_end] + note_page_link + nav_top_content[k_end:]
 
-        new_nav_top_content = nav_top_content[0:k_end] + u" * [[[" + tomorrow + "]]]\n" + nav_top_content[k_end:]
-
-        #print(  new_nav_top_content )
-        s.pages.save_one({'site': site, 'page': page2, 'content': new_nav_top_content})
-else:
-    print("頁面的對應選單項目已建立")
-
-print('To view : http://%s.wikidot.com/%s' % (site, page2))
+            if wikidot.save_page(top_bar_page, top_bar_title, new_nav_top_content):
+                print('To view : http://%s.wikidot.com/%s' % (site, top_bar_page))
+    else:
+        print("頁面的對應選單項目已建立")
