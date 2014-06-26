@@ -18,8 +18,8 @@ def test_login():
     assert client.login(username, password)
 
 
-def test_send():
-    assert client.send(username, username, subject, html=content) == {}
+# def test_send():
+#     assert client.send(username, username, subject, html=content) == {}
 
 
 def test_quit():

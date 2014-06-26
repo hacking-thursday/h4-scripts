@@ -23,8 +23,8 @@ def test_enter():
     assert client.enter(board)
 
 
-def test_post():
-    assert client.post(subject, content)
+# def test_post():
+#     assert client.post(subject, content)
 
 
 def test_quit():
