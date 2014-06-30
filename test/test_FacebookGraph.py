@@ -15,4 +15,4 @@ graph = Graph(token)
 
 
 def test_get_uid():
-    assert isinstance(graph.getUID(), str)
+    assert isinstance(graph.getUID(), int)
