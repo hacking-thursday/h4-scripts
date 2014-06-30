@@ -1,7 +1,7 @@
 # 這個檔案用於 /etc/crontab 或是用 crontab -e 加在個人的 crontab
 
 # 於每週一的 12:00 時，發聚會通告信
-00 12 * * 3       /ABS_PATH_TO/h4-scripts/h4_invitation_notifier
+00 12 * * 1       /ABS_PATH_TO/h4-scripts/h4_invitation_notifier
 # 於每週一的 12:02 時，建立 Facebook 活動事件
 02 12 * * 1       /ABS_PATH_TO/h4-scripts/h4_invitation_notifier_facebook.py
 # 於每週一的 12:03 時，於 PTT Linux 討論版貼文公告
