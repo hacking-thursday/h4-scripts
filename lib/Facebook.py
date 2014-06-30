@@ -92,7 +92,7 @@ class Graph():
         try:
             connection = urllib2.urlopen(url)
             response = connection.read()
-            uid = simplejson.loads(response)['id']
+            uid = int(simplejson.loads(response)['id'])
         finally:
             return uid
 
@@ -144,3 +144,15 @@ class Graph():
             event_id = simplejson.loads(response)['id']
         finally:
             return event_id
+
+    def getGroups(self):
+        query = '/me/groups'
+        url = GRAPH_URL + query + '?access_token=' + self.token
+
+        groups = None
+        try:
+            connection = urllib2.urlopen(url)
+            response = connection.read()
+            groups = simplejson.loads(response)
+        finally:
+            return groups
