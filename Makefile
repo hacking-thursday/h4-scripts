@@ -6,7 +6,7 @@ setup: # 安裝 dependencies
 	test -d 3rd || mkdir 3rd
 	test -d 3rd/wikidot/ || ( cd 3rd; git clone git://github.com/gabrys/wikidot.git )
 	test -d 3rd/gdata-python-client/ || ( cd 3rd; hg clone http://code.google.com/p/gdata-python-client/ )
-	sudo apt-get install -y tidy python-dev
+	sudo apt-get install -y mercurial tidy python-dev python-pip
 	sudo pip install nose
 	sudo pip install simplejson
 
