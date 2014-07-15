@@ -34,7 +34,7 @@ class Gmail():
             if isinstance(recipient, str):
                 recipient = recipient.split(',')
             if isinstance(cc, str):
-                recipient = recipient.split(',')
+                cc = cc.split(',')
 
             msg['From'] = sender
             msg['To'] = COMMASPACE.join(recipient)
