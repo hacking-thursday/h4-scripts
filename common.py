@@ -149,8 +149,8 @@ def read_settings_from_file():
             volatile_settings['wikidot_api_key'] = config.get('wikidot', 'wikidot_api_key')
 
             # Section: facebook
-            volatile_settings['facebook_password'] = config.get('facebook', 'facebook_password')
-            volatile_settings['facebook_user'] = config.get('facebook', 'facebook_user')
+            volatile_settings['facebook_password'] = config.get('facebook', 'password')
+            volatile_settings['facebook_user'] = config.get('facebook', 'username')
             volatile_settings['facebook_api_key'] = config.get('facebook', 'facebook_api_key')
             volatile_settings['facebook_secret'] = config.get('facebook', 'facebook_secret')
             volatile_settings['facebook_gid'] = config.get('facebook', 'facebook_gid')
