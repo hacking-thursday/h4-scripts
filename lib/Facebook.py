@@ -10,6 +10,7 @@ import urllib
 import urllib2
 import cookielib
 import simplejson
+import datetime
 
 
 # config variable
@@ -156,3 +157,24 @@ class Graph():
             groups = simplejson.loads(response)
         finally:
             return groups
+
+    def getGroupRecentEvents(self, gropu_id):
+        query = '/v2.1/%s/events' % gropu_id
+        url = GRAPH_URL + query + '?access_token=' + self.token
+
+        connection = urllib2.urlopen(url)
+        response = connection.read()
+
+        events = []
+        if 'data' in simplejson.loads(response):
+            for event in simplejson.loads(response)['data']:
+                if datetime.datetime.strptime(event['start_time'], "%Y-%m-%dT%H:%M:00+0800") > datetime.datetime.now():
+                    _ = {}
+                    _['name'] = event['name']
+                    _['start_datetime'] = datetime.datetime.strptime(event['start_time'], "%Y-%m-%dT%H:%M:00+0800") - datetime.timedelta(hours=12)
+                    _['end_datetime'] = datetime.datetime.strptime(event['end_time'], "%Y-%m-%dT%H:%M:00+0800") - datetime.timedelta(hours=12)
+                    _['url'] = 'https://www.facebook.com/events/%s' % event['id']
+
+                    events.append(_)
+
+        return events
