@@ -79,6 +79,21 @@ class Facebook():
 
         line = usock.read()
 
+    def get_group_id(self, group_name):
+        url = 'https://www.facebook.com/groups/%s/' % group_name
+        usock = self.opener.open(url)
+
+        line = usock.read()
+
+        p = re.compile('\?group_id=(\d+)')
+        id = p.findall(line)[0]
+
+        if id:
+            print 'Facebook Group ID : ',
+            print id
+
+        return id
+
 
 class Graph():
     def __init__(self, access_token):
