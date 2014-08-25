@@ -85,14 +85,27 @@ class Facebook():
 
         line = usock.read()
 
-        p = re.compile('name="group_id" value="(\d+)"')
-        id = p.findall(line)[0]
+        # open group
+        p = re.compile('group_id=(\d+)&amp;')
+        found = p.findall(line)
+        if found:
+            id = found[0]
 
-        if id:
             print 'Facebook Group ID : ',
             print id
 
-        return id
+            return id
+
+        # closed group
+        p = re.compile('&amp;group_id=(\d+)')
+        found = p.findall(line)
+        if found:
+            id = found[0]
+
+            print 'Facebook Group ID : ',
+            print id
+
+            return id
 
 
 class Graph():
