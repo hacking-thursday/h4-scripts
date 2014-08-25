@@ -11,6 +11,7 @@ import urllib2
 import cookielib
 import simplejson
 import datetime
+import dateutil.parser
 
 
 # config variable
@@ -196,11 +197,12 @@ class Graph():
         events = []
         if 'data' in simplejson.loads(response):
             for event in simplejson.loads(response)['data']:
-                if datetime.datetime.strptime(event['start_time'], "%Y-%m-%dT%H:%M:00+0800") > datetime.datetime.now():
+                if dateutil.parser.parse(event['start_time']).strftime("%Y-%m-%d %H:%M:00") > datetime.datetime.now().strftime("%Y-%m-%d %H:%M:00"):
                     _ = {}
                     _['name'] = event['name']
-                    _['start_datetime'] = datetime.datetime.strptime(event['start_time'], "%Y-%m-%dT%H:%M:00+0800") - datetime.timedelta(hours=12)
-                    _['end_datetime'] = datetime.datetime.strptime(event['end_time'], "%Y-%m-%dT%H:%M:00+0800") - datetime.timedelta(hours=12)
+                    _['start_datetime'] = dateutil.parser.parse(event['start_time']).strftime("%Y-%m-%d %H:%M:00")
+                    if 'end_time' in event:
+                        _['end_datetime'] = dateutil.parser.parse(event['end_time']).strftime("%Y-%m-%d %H:%M:00")
                     _['url'] = 'https://www.facebook.com/events/%s' % event['id']
 
                     events.append(_)
