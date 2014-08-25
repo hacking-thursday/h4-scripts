@@ -85,7 +85,7 @@ class Facebook():
 
         line = usock.read()
 
-        p = re.compile('\?group_id=(\d+)')
+        p = re.compile('name="group_id" value="(\d+)"')
         id = p.findall(line)[0]
 
         if id:
