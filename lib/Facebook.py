@@ -229,3 +229,25 @@ class Graph():
                     events.append(_)
 
         return events
+
+    def getPastEvents(self, facebook_id):
+        query = '/v2.1/%s/events' % facebook_id
+        url = GRAPH_URL + query + '?access_token=' + self.token
+
+        connection = urllib2.urlopen(url)
+        response = connection.read()
+
+        events = []
+        if 'data' in simplejson.loads(response):
+            for event in simplejson.loads(response)['data']:
+                if dateutil.parser.parse(event['start_time']).strftime("%Y-%m-%d %H:%M:00") < datetime.datetime.now().strftime("%Y-%m-%d %H:%M:00"):
+                    _ = {}
+                    _['name'] = event['name']
+                    _['start_datetime'] = dateutil.parser.parse(event['start_time']).strftime("%Y-%m-%d %H:%M:00")
+                    if 'end_time' in event:
+                        _['end_datetime'] = dateutil.parser.parse(event['end_time']).strftime("%Y-%m-%d %H:%M:00")
+                    _['url'] = 'https://www.facebook.com/events/%s' % event['id']
+
+                    events.append(_)
+
+        return events
