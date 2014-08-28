@@ -208,8 +208,8 @@ class Graph():
         finally:
             return groups
 
-    def getGroupRecentEvents(self, gropu_id):
-        query = '/v2.1/%s/events' % gropu_id
+    def getRecentEvents(self, facebook_id):
+        query = '/v2.1/%s/events' % facebook_id
         url = GRAPH_URL + query + '?access_token=' + self.token
 
         connection = urllib2.urlopen(url)
