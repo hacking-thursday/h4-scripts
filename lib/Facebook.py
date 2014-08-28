@@ -80,25 +80,46 @@ class Facebook():
 
         line = usock.read()
 
+    def get_facebook_id(self, url_name):
+        try:
+            facebook_id = self.get_group_id(url_name)
+
+            if facebook_id:
+                return facebook_id
+        except:
+            pass
+
+        try:
+            facebook_id = self.get_user_page_id(url_name)
+
+            if facebook_id:
+                return facebook_id
+        except:
+            pass
+
+    def get_user_page_id(self, page_name):
+        url = 'https://www.facebook.com/%s/' % page_name
+        usock = self.opener.open(url)
+
+        line = usock.read()
+
+        p = re.compile('profile_owner&quot;:&quot;(\d+)&quot;,&quot;')
+        found = p.findall(line)
+        if found:
+            id = found[0]
+
+            print 'Facebook ID : ',
+            print id
+
+            return id
+
     def get_group_id(self, group_name):
         url = 'https://www.facebook.com/groups/%s/' % group_name
         usock = self.opener.open(url)
 
         line = usock.read()
 
-        # open group
-        p = re.compile('group_id=(\d+)&amp;')
-        found = p.findall(line)
-        if found:
-            id = found[0]
-
-            print 'Facebook Group ID : ',
-            print id
-
-            return id
-
-        # closed group
-        p = re.compile('&amp;group_id=(\d+)')
+        p = re.compile('"selectedKey":"group_(\d+)"')
         found = p.findall(line)
         if found:
             id = found[0]
