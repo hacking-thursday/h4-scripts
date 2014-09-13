@@ -16,7 +16,8 @@ from email.Header import Header
 import os
 import ConfigParser
 
-import libxml2
+#import libxml2
+from BeautifulSoup import BeautifulSoup
 import StringIO
 
 import tempfile
@@ -236,22 +237,14 @@ def get_wikidot_content_body(URL):
     the_html = file2string(htmlfile)
     os.system("rm " + htmlfile)
 
-    the_xml = html2xml(the_html)
-    string2file(the_xml, xmlfile)
-    doc = libxml2.parseFile(xmlfile)
-
-    ctxt = doc.xpathNewContext()
-    ctxt.xpathRegisterNs('xhtml', 'http://www.w3.org/1999/xhtml')
-    rows = ctxt.xpathEval('//xhtml:div[@id="page-content"]')
-    ctxt.xpathFreeContext()
-
-    f = StringIO.StringIO()
-    buf = libxml2.createOutputBuffer(f, 'UTF-8')
-    rows[0].docSetRootElement(doc)
-    doc.saveFileTo(buf, 'UTF-8')
+    soup = BeautifulSoup(the_html)
+    div = soup.findAll('div', attrs={'id': 'page-content'})
+    res_txt = ""
+    for d in div:
+        res_txt += d.prettify()
 
     os.system("rm " + xmlfile)
-    result = f.getvalue()
+    result = res_txt
 
     return result
 
