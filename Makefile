@@ -6,7 +6,6 @@ setup: # 安裝 dependencies
 	test -d _logs || mkdir _logs
 	test -d 3rd || mkdir 3rd
 	test -d 3rd/wikidot/ || ( cd 3rd; git clone git://github.com/gabrys/wikidot.git )
-	test -d 3rd/gdata-python-client/ || ( cd 3rd; hg clone http://code.google.com/p/gdata-python-client/ )
 	sudo pip install -r requirements.txt
 
 run-wiki:   # wididot 之個人頁面 rebuild
