@@ -2,15 +2,12 @@ help:  # 顯示命令列表
 	@cat Makefile | grep -e '^\([[:alpha:]].*\):' | sed -e 's/^\(.*\):.*#\(.*\)/make \1 \t #\2/g'
 
 setup: # 安裝 dependencies
+	sudo apt-get install -y mercurial tidy python-dev python-pip php5-cli
 	test -d _logs || mkdir _logs
 	test -d 3rd || mkdir 3rd
 	test -d 3rd/wikidot/ || ( cd 3rd; git clone git://github.com/gabrys/wikidot.git )
 	test -d 3rd/gdata-python-client/ || ( cd 3rd; hg clone http://code.google.com/p/gdata-python-client/ )
-	sudo apt-get install -y mercurial tidy python-dev python-pip python-libxml2 php5-cli
-	sudo pip install nose
-	sudo pip install simplejson
-	sudo pip install google-api-python-client
-	sudo pip install python-dateutil
+	sudo pip install -r requirements.txt
 
 run-wiki:   # wididot 之個人頁面 rebuild
 	./h4_wikidot_rebuild 2>&1 | tee _logs/h4_wikidot_rebuild_$$(date "+%Y-%m-%d_%H%M%S").log
