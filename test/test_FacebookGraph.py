@@ -16,3 +16,7 @@ graph = Graph(token)
 
 def test_get_uid():
     assert isinstance(graph.getUID(), int)
+
+
+def test_get_group_event():
+    assert isinstance(graph.getRecentEvents('468945293170945'), list)
