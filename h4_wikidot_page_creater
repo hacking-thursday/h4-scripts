@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
     # 更新上方選單項目
     top_bar_page = "nav:top"
-    top_bar_title= 'Top Bar Menu'
+    top_bar_title = 'Top Bar Menu'
     target_keyword = u"* [# 聚會手記]\n"
     note_page_link = u" * [[[" + tomorrow + "]]]\n"
 
