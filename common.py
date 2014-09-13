@@ -30,7 +30,7 @@ root_path = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(os.path.join(root_path, '3rd'))
 sys.path.append(os.path.join(root_path, '3rd', 'gdata-python-client', 'src'))
 
-import html2text
+import html2text  # pip version decode error, using 3rd-party instead
 import gdata.spreadsheet.service
 import gdata.service
 import atom.service
