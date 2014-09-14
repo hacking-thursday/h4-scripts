@@ -3,7 +3,7 @@
     h4_wiki_notifier            發送聚會手記 mail
 
 # 大家都可以
-    h4_wikidot_indexing         更新內容頁列表 
+    h4_wikidot_indexing         更新內容頁列表
     h4_wikidot_page_creater     建立聚會手記 wiki 頁面
     h4_wikidot_rebuild          Parse 聚會手記，然後整理成個人筆記紀錄
 
@@ -17,7 +17,7 @@
 ```
 apt-get install python-pip mercurial tidy php5-cli
 pip install -r requirements.txt
-make test
+make setup
 ```
 
 # Reference
