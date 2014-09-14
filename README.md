@@ -15,8 +15,9 @@
 
 ## Ubuntu
 ```
-apt-get install python-pip mercurial
+apt-get install python-pip mercurial tidy php5-cli
 pip install -r requirements.txt
+make test
 ```
 
 # Reference
