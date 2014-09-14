@@ -1,7 +1,7 @@
 gdata
-http://xmlsoft.org/sources/python/libxml2-python-2.6.21.tar.gz
 hg+http://code.google.com/p/gdata-python-client#egg=gdata-python-client
 nose
 simplejson
 google-api-python-client
 python-dateutil
+BeautifulSoup
