@@ -13,5 +13,11 @@
 # Install
 將 dot.h4notifier.ini 編輯修改 USERNAME, PASSWORD，...等參數後，複製到 $HOME/.h4notifier.ini
 
+## Ubuntu
+```
+apt-get install python-pip mercurial
+pip install -r requirements.txt
+```
+
 # Reference
 http://www.aaronsw.com/2002/diff/
