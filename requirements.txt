@@ -1,7 +1,7 @@
 gdata
-BeautifulSoup
 hg+http://code.google.com/p/gdata-python-client#egg=gdata-python-client
 nose
 simplejson
 google-api-python-client
 python-dateutil
+BeautifulSoup

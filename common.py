@@ -19,12 +19,10 @@ import os
 import ConfigParser
 
 from BeautifulSoup import BeautifulSoup
-import StringIO
 
 import tempfile
 
 import re
-import string
 import sys
 
 root_path = os.path.abspath(os.path.dirname(__file__))
@@ -32,12 +30,6 @@ sys.path.append(os.path.join(root_path, '3rd'))
 sys.path.append(os.path.join(root_path, '3rd', 'gdata-python-client', 'src'))
 
 import html2text  # pip version decode error, using 3rd-party instead
-import gdata.spreadsheet.service
-import gdata.service
-import atom.service
-import gdata.spreadsheet
-import atom
-
 import GoogleSpreadsheetAPI
 
 
@@ -137,46 +129,42 @@ def read_settings_from_file():
         config = ConfigParser.RawConfigParser()
         config.read(settings_file)
 
-        try:
-            # Section: gmail
-            volatile_settings['username'] = config.get('gmail', 'username')
-            volatile_settings['password'] = config.get('gmail', 'password')
+        # Section: gmail
+        volatile_settings['username'] = config.get('gmail', 'username')
+        volatile_settings['password'] = config.get('gmail', 'password')
 
-            # Section: hackingthursday
-            volatile_settings['who'] = config.get('hackingthursday', 'who')
-            volatile_settings['email_address'] = config.get('hackingthursday', 'email_address')
+        # Section: hackingthursday
+        volatile_settings['who'] = config.get('hackingthursday', 'who')
+        volatile_settings['email_address'] = config.get('hackingthursday', 'email_address')
 
-            # Section: wikidot
-            volatile_settings['wikidot_api_user'] = config.get('wikidot', 'wikidot_api_user')
-            volatile_settings['wikidot_api_key'] = config.get('wikidot', 'wikidot_api_key')
+        # Section: wikidot
+        volatile_settings['wikidot_api_user'] = config.get('wikidot', 'wikidot_api_user')
+        volatile_settings['wikidot_api_key'] = config.get('wikidot', 'wikidot_api_key')
 
-            # Section: facebook
-            volatile_settings['facebook_password'] = config.get('facebook', 'password')
-            volatile_settings['facebook_user'] = config.get('facebook', 'username')
-            volatile_settings['facebook_api_key'] = config.get('facebook', 'facebook_api_key')
-            volatile_settings['facebook_secret'] = config.get('facebook', 'facebook_secret')
-            volatile_settings['facebook_gid'] = config.get('facebook', 'facebook_gid')
+        # Section: facebook
+        volatile_settings['facebook_password'] = config.get('facebook', 'password')
+        volatile_settings['facebook_user'] = config.get('facebook', 'username')
+        volatile_settings['facebook_api_key'] = config.get('facebook', 'facebook_api_key')
+        volatile_settings['facebook_secret'] = config.get('facebook', 'facebook_secret')
+        volatile_settings['facebook_gid'] = config.get('facebook', 'facebook_gid')
 
-            # Section: bbs
-            volatile_settings['bbs_user'] = config.get('bbs', 'user')
-            volatile_settings['bbs_pass'] = config.get('bbs', 'pass')
+        # Section: bbs
+        volatile_settings['bbs_user'] = config.get('bbs', 'user')
+        volatile_settings['bbs_pass'] = config.get('bbs', 'pass')
 
-            # Section: googledoc
-            volatile_settings['googledoc_email'] = config.get('googledoc', 'email')
-            volatile_settings['googledoc_password'] = config.get('googledoc', 'password')
-            volatile_settings['googledoc_spreadsheet'] = config.get('googledoc', 'spreadsheet')
-            volatile_settings['googledoc_worksheet'] = config.get('googledoc', 'worksheet')
+        # Section: googledoc
+        volatile_settings['googledoc_email'] = config.get('googledoc', 'email')
+        volatile_settings['googledoc_password'] = config.get('googledoc', 'password')
+        volatile_settings['googledoc_spreadsheet'] = config.get('googledoc', 'spreadsheet')
+        volatile_settings['googledoc_worksheet'] = config.get('googledoc', 'worksheet')
 
-            value = config.get('googledoc', 'dryrun')
-            value = value.strip().lower()
-            if value in ["yes", "y", "true", "on"]:
-                value = True
-            else:
-                value = False
-            volatile_settings['googledoc_dryrun'] = value
-
-        except:
-            pass
+        value = config.get('googledoc', 'dryrun')
+        value = value.strip().lower()
+        if value in ["yes", "y", "true", "on"]:
+            value = True
+        else:
+            value = False
+        volatile_settings['googledoc_dryrun'] = value
 
 
 ##################
@@ -275,9 +263,9 @@ def fetch_googledoc_spreadsheet(email, password, spreadsheet_name, worksheet_nam
     work = GoogleSpreadsheetAPI.Spreadsheet.Worksheet(spr, worksheet_name)
     feed = work.getCells()
 
-    for i, entry in enumerate(feed.entry):
+    for entry in enumerate(feed.entry):
         #print (i, entry.title.text, entry.content.text)
-        pattern = "(\w)(\d+)"
+        pattern = r"(\w)(\d+)"
         matches = re.findall(pattern, entry.title.text)
         #print matches
         col_idx = matches[0][0]
@@ -310,7 +298,7 @@ def fetch_googledoc_spreadsheet(email, password, spreadsheet_name, worksheet_nam
 
             # 修正手機的格式
             if col_name == "Mobile" and value.__len__() == 9:
-                    value = "0" + value
+                value = "0" + value
 
             result_ary[row_idx][col_name] = value
 
@@ -341,14 +329,14 @@ def convert_spreadsheet_to_userdata(sprd_data):
 
 
 def search_userdata(sprd_data, keyword):
-        result = {}
-        for k in sprd_data.keys():
-                row = sprd_data[k]
-                for value in row.values():
-                        if value.find(keyword) >= 0:
-                                result[k] = row
+    result = {}
+    for k in sprd_data.keys():
+        row = sprd_data[k]
+        for value in row.values():
+            if value.find(keyword) >= 0:
+                result[k] = row
 
-        return result
+    return result
 
 
 def show_userdata(sprd_data_row):
