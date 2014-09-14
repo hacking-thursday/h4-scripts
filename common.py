@@ -6,6 +6,8 @@
 # License: MIT
 #
 
+from __future__ import print_function
+
 import datetime
 
 import smtplib
@@ -16,7 +18,6 @@ from email.Header import Header
 import os
 import ConfigParser
 
-#import libxml2
 from BeautifulSoup import BeautifulSoup
 import StringIO
 
