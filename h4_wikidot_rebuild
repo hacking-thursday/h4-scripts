@@ -12,6 +12,7 @@
 from xmlrpclib import ServerProxy
 import common
 from common import *
+from lib.Config import Config
 import re
 import os
 import subprocess
@@ -23,18 +24,18 @@ cache_dir = os.path.join(ROOT, "_cache")
 #
 # 程式參數
 #
-read_settings_from_file()
-api_user = volatile_settings['wikidot_api_user']
-api_key = volatile_settings['wikidot_api_key']
+config = Config()
+api_user = config['wikidot']['wikidot_api_user']
+api_key = config['wikidot']['wikidot_api_key']
 site = 'hackingthursday'
 root_url = 'http://www.hackingthursday.org'
 ep_url = 'www.wikidot.com/xml-rpc-api.php'
 proxy = ServerProxy('https://' + api_user + ':' + api_key + '@' + ep_url)
-googledoc_user = volatile_settings['googledoc_email']
-googledoc_pass = volatile_settings['googledoc_password']
-spreadsheet = volatile_settings['googledoc_spreadsheet']
-worksheet = volatile_settings['googledoc_worksheet']
-dryrun = volatile_settings['googledoc_dryrun']
+googledoc_user = config['googledoc']['email']
+googledoc_pass = config['googledoc']['password']
+spreadsheet = config['googledoc']['spreadsheet']
+worksheet = config['googledoc']['worksheet']
+dryrun = config['googledoc']['dryrun']
 
 #
 # 程式資料結構

@@ -11,14 +11,15 @@
 
 from xmlrpclib import ServerProxy
 from common import *
+from lib.Config import Config
 
 
 #
 # 程式參數
 #
-read_settings_from_file()
-api_user = volatile_settings['wikidot_api_user']
-api_key = volatile_settings['wikidot_api_key']
+config = Config()
+api_user = config['wikidot']['wikidot_api_user']
+api_key = config['wikidot']['wikidot_api_key']
 site = 'hackingthursday'
 
 #
