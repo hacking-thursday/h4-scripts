@@ -366,3 +366,18 @@ def show_userdata(sprd_data_row):
     print("筆名".rjust(12), ":", field05.replace('||', ', '))
     print("notify".rjust(10), ":", field06)
     print("備註".rjust(12), ":", field07)
+
+
+def find_keyword_and_insert_content(content, find_kw_beg, find_kw_end, ins_str):
+    ins_pos_beg = content.find(find_kw_beg) + find_kw_beg.__len__()
+    if find_kw_beg is None:
+        ins_pos_end = ins_pos_beg
+    else:
+        ins_pos_end = content.find(find_kw_end)
+
+    if ins_pos_beg >= 0 and ins_pos_end >= ins_pos_beg:
+        new_content = content[0:ins_pos_beg] + ins_str + content[ins_pos_end:]
+    else:
+        new_content = content
+
+    return new_content

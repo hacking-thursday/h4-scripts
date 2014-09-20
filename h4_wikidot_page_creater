@@ -58,13 +58,9 @@ if __name__ == "__main__":
 
     foundReturn = nav_top_content.find(tomorrow)
     if foundReturn < 0:
-        k_start = nav_top_content.find(target_keyword)
-        if k_start >= 0:
-            k_end = k_start + len(target_keyword)
+        new_nav_top_content = find_keyword_and_insert_content(nav_top_content, target_keyword, None, note_page_link)
 
-            new_nav_top_content = nav_top_content[0:k_end] + note_page_link + nav_top_content[k_end:]
-
-            if wikidot.save_page(top_bar_page, top_bar_title, new_nav_top_content):
-                print('To view : http://%s.wikidot.com/%s' % (site, top_bar_page))
+        if wikidot.save_page(top_bar_page, top_bar_title, new_nav_top_content):
+            print('To view : http://%s.wikidot.com/%s' % (site, top_bar_page))
     else:
         print("頁面的對應選單項目已建立")

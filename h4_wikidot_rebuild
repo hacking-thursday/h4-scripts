@@ -513,17 +513,10 @@ keyword_end = "\n  * [[[user:non-en]]]\n"
 
 nav_top_page = proxy.pages.get_one({"site": site, "page": nav_page})
 nav_top_content = nav_top_page["content"].encode('utf8')
-k_start = nav_top_content.find(keyword_beg)
-k_end = nav_top_content.find(keyword_end)
 
-if k_start >= 0 and k_end >= 0 and k_end > k_start:
-    k_end = k_end + keyword_end.__len__()
-
-    new_nav_top_content = nav_top_content[0:k_start] + page_of_index + nav_top_content[k_end:]
-
-    #print new_nav_top_content
-    if dryrun is not True:
-            proxy.pages.save_one({'site': site, 'page': nav_page, 'content': new_nav_top_content})
+new_nav_top_content = find_keyword_and_insert_content(nav_top_content, keyword_beg, keyword_end, page_of_index)
+if dryrun is not True:
+    proxy.pages.save_one({'site': site, 'page': nav_page, 'content': new_nav_top_content})
 
 
 def send_notify_mail(author):
