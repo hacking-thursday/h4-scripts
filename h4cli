@@ -15,28 +15,39 @@ from lib.Config import Config
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(dest='subcmd')
 
     # 通用選項
     parser.add_argument('-n', '--dry-run', help='跳過會寫入的動作', dest='dryrun', action='store_true')
     parser.add_argument('-v', '--verbose', help='顯示更詳細的訊息', dest='verbose', action='store_true')
 
-    # 進階選項
-    parser.add_argument('--fb', help='使用 facebook', dest='use_fb', action='store_true')
-    parser.add_argument('--ptt', help='使用 ptt', dest='use_ptt', action='store_true')
-    parser.add_argument('--email', help='使用 email', dest='use_email', action='store_true')
-    parser.add_argument('--wiki', help='使用 wiki', dest='use_wiki', action='store_true')
+    # sub command for "search"
+    parser_sub = subparsers.add_parser('search', help='搜尋線上通訊錄')
+    parser_sub.add_argument('params', nargs='*', help='search keyword')
 
-    # 動作跟參數
-    parser.add_argument('action', nargs=1, help='動作: search | rebuild | invite | notify | newpage ')
-    parser.add_argument('params', nargs='*', help='參數')
+    # sub command for "notify"
+    parser_sub = subparsers.add_parser('notify', help='內容更新通知')
+    parser_sub.add_argument('--wiki', help='使用 wiki', dest='use_wiki', action='store_true')
+
+    # sub command for "invite"
+    parser_sub = subparsers.add_parser('invite', help='發送聚會通告')
+    parser_sub.add_argument('--fb', help='使用 facebook', dest='use_fb', action='store_true')
+    parser_sub.add_argument('--ptt', help='使用 ptt', dest='use_ptt', action='store_true')
+    parser_sub.add_argument('--email', help='使用 email', dest='use_email', action='store_true')
+
+    # sub command for "wikidot"
+    parser_sub = subparsers.add_parser('wikidot', help='wikidot操作')
+    parser_sub.add_argument('--do-index', help='更新編目', dest='do_index', action='store_true')
+    parser_sub.add_argument('--do-newpage', help='新增當週頁面', dest='do_newpage', action='store_true')
+    parser_sub.add_argument('--do-rebuild', help='更新作者頁面from聚會手記', dest='do_rebuild', action='store_true')
 
     args = parser.parse_args()
     #print args; exit()
 
-    if args.action not in [["search"], ["rebuild"], ["invite"], ["notify"], ["newpage"], ]:
+    if args.subcmd is None:
         parser.print_help()
 
-    elif args.action == ["search"]:
+    elif args.subcmd == "search":
         print("搜尋通訊錄", args.params)
         config = Config()
         googledoc_user = config['googledoc']['email']
@@ -53,25 +64,30 @@ if __name__ == '__main__':
                 print("=" * 60)
                 show_userdata(row)
 
-    elif args.action == ["rebuild"]:
-        print("更新 wiki 個人頁面", args.params)  # 用來取代 h4_wikidot_rebuild, h4_wikidot_indexing
-
-    elif args.action == ["invite"]:
-        print("發送聚會通告", args.params)
+    elif args.subcmd == "invite":
+        print("發送聚會通告")
         if args.use_fb:
-                print("發送聚會通告 -> FB", args.params)  # 用來取代 h4_create_fb_event.py
+                print("發送聚會通告 -> FB")  # 用來取代 h4_create_fb_event.py
 
         if args.use_ptt:
-                print("發送聚會通告 -> PTT", args.params)  # 用來取代 h4_post_ptt_event_telnetlib.py
+                print("發送聚會通告 -> PTT")  # 用來取代 h4_post_ptt_event_telnetlib.py
 
         if args.use_email:
-                print("發送聚會通告 -> Mailling list", args.params)  # 用來取代 h4_invitation_notifier
+                print("發送聚會通告 -> Mailling list")  # 用來取代 h4_invitation_notifier
 
-    elif args.action == ["notify"]:
-        print("發送 wiki 聚會手記", args.params)  # 用來取代 h4_wiki_notifier
+    elif args.subcmd == "notify":
+        if args.use_wiki:
+            print("發送 wiki 聚會手記")  # 用來取代 h4_wiki_notifier
 
-    elif args.action == ["newpage"]:
-        print("新建 wiki 當週頁面", args.params)  # 用來取代 h4_wikidot_page_creater
+    elif args.subcmd == "wikidot":
+        if args.do_index:
+            print("新建 wiki 頁面編目")  # 用來取代 h4_wikidot_indexing
+
+        if args.do_newpage:
+            print("新建 wiki 當週頁面")  # 用來取代 h4_wikidot_page_creater
+
+        if args.do_rebuild:
+            print("更新 wiki 個人頁面")  # 用來取代 h4_wikidot_rebuild
 
     else:
         pass
