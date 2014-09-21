@@ -30,7 +30,7 @@ sys.path.append(os.path.join(root_path, '3rd'))
 sys.path.append(os.path.join(root_path, '3rd', 'gdata-python-client', 'src'))
 
 import html2text  # pip version decode error, using 3rd-party instead
-import GoogleSpreadsheetAPI
+import lib.GoogleSpreadsheetAPI
 
 
 def thisThursday():
@@ -123,17 +123,19 @@ volatile_settings = {
     'googledoc_password': '',
 }
 
-def config_get( sec, opt ):
+
+def config_get(sec, opt):
     result = ""
     if os.access(settings_file, os.R_OK):
         config = ConfigParser.RawConfigParser()
         config.read(settings_file)
         try:
-            result = config.get( sec, opt )
+            result = config.get(sec, opt)
         except:
             pass
 
     return result
+
 
 def read_settings_from_file():
         # Section: gmail
@@ -266,8 +268,8 @@ def fetch_googledoc_spreadsheet(email, password, spreadsheet_name, worksheet_nam
     result_ary = {}
 
     # 取得列表內容
-    spr = GoogleSpreadsheetAPI.Spreadsheet(email, password, spreadsheet_name)
-    work = GoogleSpreadsheetAPI.Spreadsheet.Worksheet(spr, worksheet_name)
+    spr = lib.GoogleSpreadsheetAPI.Spreadsheet(email, password, spreadsheet_name)
+    work = lib.GoogleSpreadsheetAPI.Spreadsheet.Worksheet(spr, worksheet_name)
     feed = work.getCells()
 
     for i, entry in enumerate(feed.entry):
