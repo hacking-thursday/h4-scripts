@@ -9,9 +9,11 @@
 
 from __future__ import print_function
 import argparse
+import common
 from common import *
 from lib.Config import Config
 from lib.Wikidot import Wikidot
+from lib.Gmail import Gmail
 
 
 if __name__ == '__main__':
@@ -74,7 +76,25 @@ if __name__ == '__main__':
                 print("發送聚會通告 -> PTT")  # 用來取代 h4_post_ptt_event_telnetlib.py
 
         if args.use_email:
-                print("發送聚會通告 -> Mailling list")  # 用來取代 h4_invitation_notifier
+            PartyDate = common.thisThursday()
+
+            config = Config()
+            username = config['gmail']['username']
+            password = config['gmail']['password']
+            Sender = config['hackingthursday']['who']  # 值日生的 email
+            Reciver = config['hackingthursday']['email_address']
+            Subject = "HackingThursday 固定聚會 (%s)" % PartyDate
+
+            # 這裡改從網頁上將通告內文抓下來，以後改用網頁來更新通告。
+            Html = common.get_wikidot_content_body("http://www.hackingthursday.org/invite")
+            Txt = common.html2txt(Html)
+
+            gmail = Gmail()
+            gmail.login(username, password)
+            if args.dryrun is not True:
+                gmail.send(Sender, Reciver, Subject, Txt, Html)
+            else:
+                print("dryrun 模式，未寄出")
 
     elif args.subcmd == "notify":
         if args.use_wiki:
