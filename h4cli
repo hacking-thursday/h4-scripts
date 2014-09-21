@@ -290,7 +290,60 @@ if __name__ == '__main__':
                 print("dryrun 模式，未寫入")
 
         if args.do_newpage:
-            print("新建 wiki 當週頁面")  # 用來取代 h4_wikidot_page_creater
+            config = Config()
+            user_app = config['wikidot']['wikidot_api_user']
+            key = config['wikidot']['wikidot_api_key']
+
+            tomorrow = thisThursday()
+            lastweek = prevThursday(tomorrow)
+            nextweek = nextThursday(tomorrow)
+            site = 'hackingthursday'
+            page = tomorrow
+            title = tomorrow + ' 聚會手記'
+            content = '''
+            [[[ %s |上一週]]] || [[[ %s |下一週]]]
+
+            [[toc]]
+
+            [[html]]
+            <iframe src='http://pad.hackingthursday.org?showControls=true&showChat=true&showLineNumbers=true&useMonospaceFont=false' width=675 height=400></iframe>
+            [[/html]]
+            ''' % (lastweek, nextweek)
+
+            wikidot = Wikidot()
+            wikidot.auth(user_app, key)
+            wikidot.set_site(site)
+
+            # 如果頁面不存在，則建立當週筆記頁
+            if not wikidot.get_page(page):
+                if args.dryrun is not True:
+                    if wikidot.save_page(page, title, content):
+                        print(('To view : http://%s.wikidot.com/%s' % (site, page)))
+                else:
+                    print("dryrun 模式，未寫入")
+            else:
+                print("已經有筆記頁面了")
+
+            # 更新上方選單項目
+            top_bar_page = "nav:top"
+            top_bar_title = 'Top Bar Menu'
+            target_keyword = u"* [# 聚會手記]\n"
+            note_page_link = u" * [[[" + tomorrow + "]]]\n"
+
+            nav_top_page = wikidot.get_page(top_bar_page)
+            nav_top_content = nav_top_page["content"]
+
+            foundReturn = nav_top_content.find(tomorrow)
+            if foundReturn < 0:
+                new_nav_top_content = find_keyword_and_insert_content(nav_top_content, target_keyword, None, note_page_link)
+
+                if args.dryrun is not True:
+                    if wikidot.save_page(top_bar_page, top_bar_title, new_nav_top_content):
+                        print('To view : http://%s.wikidot.com/%s' % (site, top_bar_page))
+                else:
+                    print("dryrun 模式，未寫入")
+            else:
+                print("頁面已經有對應的選單項目了")
 
         if args.do_rebuild:
             print("更新 wiki 個人頁面")  # 用來取代 h4_wikidot_rebuild
