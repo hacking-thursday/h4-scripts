@@ -173,7 +173,41 @@ if __name__ == '__main__':
 
     elif args.subcmd == "notify":
         if args.use_wiki:
-            print("發送 wiki 聚會手記")  # 用來取代 h4_wiki_notifier
+            PartyDate = common.thisThursday()
+
+            config = Config()
+            username = config['gmail']['username']
+            password = config['gmail']['password']
+            Sender = config['hackingthursday']['who']  # 值日生的 email
+            # Receiver = config['hackingthursday']['email_address']
+            Receiver = config['hackingthursday']['who']  # 值日生的 email
+            Subject = "HackingThursday 聚會手記 (%s)" % PartyDate
+
+            WikidotNoteURL = "http://www.hackingthursday.org/" + PartyDate
+            MailContentHeader = common.mail_content_header
+            MailContentFooter = common.mail_content_footer
+
+            Html = """
+            <html>
+                <head>
+                    <title>HackingThursday</title>
+                </head>
+                <body>
+                <pre>""" + MailContentHeader + """</pre>
+                """ + WikidotNoteURL + """
+                <pre>""" + MailContentFooter + """</pre>
+                </body>
+            </html>
+            """
+
+            Txt = common.html2txt(Html)
+
+            gmail = Gmail()
+            gmail.login(username, password)
+            if args.dryrun is not True:
+                gmail.send(Sender, Receiver, Subject, Txt, Html)
+            else:
+                print("dryrun 模式，未寄出")
 
     elif args.subcmd == "wikidot":
         if args.do_index:
