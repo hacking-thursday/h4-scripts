@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+import os
 import xmlrpclib
 from xmlrpclib import ServerProxy
 
 EP_URL = 'www.wikidot.com/xml-rpc-api.php'
-
+CACHE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "_cache")
 
 class Wikidot():
     def auth(self, user, key):
@@ -73,3 +74,61 @@ class Wikidot():
             return filtering
         else:
             return pages
+
+
+    #
+    # 將頁面資料從 wikidot 先下載到本地端作cache
+    #
+    def pull_and_cache_pages(self):
+        pages = self.list_pages()
+        while pages.__len__() > 0:
+            # 一次取10個
+            page_ary = pages[0:10]
+            meta_ary = self.get_pages_meta(page_ary)
+
+            for page in page_ary:
+                page_time = meta_ary[page]['updated_at']
+                page_file = os.path.join(CACHE_DIR, page + '@' + page_time)
+
+                if os.access(CACHE_DIR, os.R_OK | os.W_OK) is False:
+                    os.mkdir(CACHE_DIR)
+
+                if os.access(page_file, os.R_OK) is False:
+                    exist_pages = os.listdir(CACHE_DIR)
+                    for p in exist_pages:
+                        if p[:page.__len__()] == page:
+                            p_path = os.path.join(CACHE_DIR, p)
+                            # Remove duplicate
+                            os.remove(p_path)
+
+                    # Fetching page
+                    the_page = self.get_page(page)
+                    content = the_page["content"].encode('utf8')
+                    f = open(page_file, 'w')
+                    f.write(content)
+                    f.close()
+
+            # 跳下一輪
+            pages = pages[10:]
+
+
+    def get_page_content(self, page):
+        result = ""
+
+        p_path = self.get_page_cache_path(page)
+        if p_path is not None:
+            result = file2string(p_path)
+
+        return result
+
+
+    def get_page_cache_path(self, page):
+        result = None
+
+        exist_pages = os.listdir(CACHE_DIR)
+        for p in exist_pages:
+            if p[:page.__len__() + 1] == page + "@":
+                p_path = os.path.join(CACHE_DIR, p)
+                result = p_path
+
+        return result

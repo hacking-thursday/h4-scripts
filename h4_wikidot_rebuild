@@ -16,9 +16,6 @@ from lib.Wikidot import Wikidot
 import re
 import os
 
-ROOT = os.path.dirname(os.path.abspath(__file__))
-cache_dir = os.path.join(ROOT, "_cache")
-
 #
 # 程式參數
 #
@@ -47,61 +44,12 @@ user_mapping = []
 authors_cnt = []
 
 
-#
-# 將頁面資料從 wikidot 下載到本地端
-#
-def pull_and_cache_pages(site, pages):
-    while pages.__len__() > 0:
-        # 一次取10個
-        page_ary = pages[0:10]
-        meta_ary = wikidot.get_pages_meta(page_ary)
-
-        for page in page_ary:
-            page_time = meta_ary[page]['updated_at']
-            page_file = os.path.join(cache_dir, page + '@' + page_time)
-
-            if os.access(cache_dir, os.R_OK | os.W_OK) is False:
-                os.mkdir(cache_dir)
-
-            if os.access(page_file, os.R_OK) is False:
-                exist_pages = os.listdir(cache_dir)
-                for p in exist_pages:
-                    if p[:page.__len__()] == page:
-                        p_path = os.path.join(cache_dir, p)
-                        print("Remove duplicate: ", p)
-                        os.remove(p_path)
-
-                print("Fetching page: ", page, " ...")
-                the_page = wikidot.get_page(page)
-                content = the_page["content"].encode('utf8')
-                f = open(page_file, 'w')
-                f.write(content)
-                f.close()
-
-        # 跳下一輪
-        pages = pages[10:]
-
-
-def get_page_content(page):
-    result = ""
-
-    exist_pages = os.listdir(cache_dir)
-    for p in exist_pages:
-        if p[:page.__len__() + 1] == page + "@":
-            p_path = os.path.join(cache_dir, p)
-            result = file2string(p_path)
-
-    return result
-
-
 def list_headings(page):
     result = []
 
-    exist_pages = os.listdir(cache_dir)
-    for p in exist_pages:
-        if p[:page.__len__()] == page:
-            p_path = os.path.join(cache_dir, p)
-            result = php_parse_wikidot_heading(p_path)
+    p_path = wikidot.get_page_cache_path(page)
+    if p_path is not None:
+        result = php_parse_wikidot_heading(p_path)
 
     return result
 
@@ -385,10 +333,7 @@ user_mapping = convert_spreadsheet_to_userdata(user_mapping_pre)
 # 列出要處理的頁面
 user_pages = wikidot_list_user_pages()
 date_pages = wikidot_list_date_pages()
-print("Fetching 聚會手記...")
-pull_and_cache_pages(site, date_pages)  # 下載聚會手記相關的頁面
-print("Fetching 個人頁面...")
-pull_and_cache_pages(site, user_pages)  # 下載個人頁面相關的頁面
+wikidot.pull_and_cache_pages()  # 下載並更新頁面 cache
 
 date_pages.sort(reverse=True)  # 將最新日期放在最前面
 for page in date_pages:
