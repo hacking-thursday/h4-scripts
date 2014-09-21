@@ -10,6 +10,7 @@
 from __future__ import print_function
 import argparse
 from common import *
+from lib.Config import Config
 
 
 if __name__ == '__main__':
@@ -37,11 +38,11 @@ if __name__ == '__main__':
 
     elif args.action == ["search"]:
         print("搜尋通訊錄", args.params)
-        read_settings_from_file()
-        googledoc_user = volatile_settings['googledoc_email']
-        googledoc_pass = volatile_settings['googledoc_password']
-        spreadsheet = volatile_settings['googledoc_spreadsheet']
-        worksheet = volatile_settings['googledoc_worksheet']
+        config = Config()
+        googledoc_user = config['googledoc']['email']
+        googledoc_pass = config['googledoc']['password']
+        spreadsheet = config['googledoc']['spreadsheet']
+        worksheet = config['googledoc']['worksheet']
 
         result = fetch_googledoc_spreadsheet(googledoc_user, googledoc_pass, spreadsheet, worksheet)
         for keyword in args.params:

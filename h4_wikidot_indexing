@@ -9,22 +9,25 @@
 # License: MIT
 #
 
-from xmlrpclib import ServerProxy
 from common import *
+from lib.Config import Config
+from lib.Wikidot import Wikidot
 
 
 #
 # 程式參數
 #
-read_settings_from_file()
-api_user = volatile_settings['wikidot_api_user']
-api_key = volatile_settings['wikidot_api_key']
+config = Config()
+api_user = config['wikidot']['wikidot_api_user']
+api_key = config['wikidot']['wikidot_api_key']
 site = 'hackingthursday'
 
 #
 # 程式資料結構
 #
-proxy = ServerProxy('https://' + api_user + ':' + api_key + '@www.wikidot.com/xml-rpc-api.php')
+wikidot = Wikidot()
+wikidot.auth(api_user, api_key)
+wikidot.set_site(site)
 
 selecte_pages = []
 collection = []
@@ -52,7 +55,7 @@ mask_pages = [
 
 
 # 列出要處理的頁面
-all_pages = proxy.pages.select({'site': site})
+all_pages = wikidot.list_pages()
 for page in all_pages:
         prefix = ""
         if page.split(':').__len__() > 1:
@@ -72,9 +75,9 @@ for page in all_pages:
 # 依更新日期作排序，最新的擺前面
 for i in range(0, selecte_pages.__len__(), 10):
         if i + 10 <= selecte_pages.__len__():
-                metadatas += proxy.pages.get_meta({'site': site, 'pages': selecte_pages[i:i + 10]}).items()
+                metadatas += wikidot.get_pages_meta(selecte_pages[i:i + 10]).items()
         else:
-                metadatas += proxy.pages.get_meta({'site': site, 'pages': selecte_pages[i:selecte_pages.__len__()]}).items()
+                metadatas += wikidot.get_pages_meta(selecte_pages[i:selecte_pages.__len__()]).items()
 
 metadatas.sort(key=lambda x: x[1].get('updated_at'), reverse=True)
 selecte_pages = []
@@ -86,7 +89,7 @@ for item in metadatas:
 page_of_index = ""
 for page in selecte_pages:
         print("處理頁面: ", page)
-        metadata = proxy.pages.get_meta({'site': site, 'pages': [page]})
+        metadata = wikidot.get_pages_meta([page])
         fullname = metadata.get(page).get('fullname').encode('utf8')
         title = metadata.get(page).get('title').encode('utf8')
         page_of_index += " * [[[%s|%s]]]\n" % (fullname, title)
@@ -97,15 +100,10 @@ nav_page = "nav:top"
 keyword_beg = "\n* [# Wiki]\n"
 keyword_end = "[!--Wiki--]"
 
-nav_top_page = proxy.pages.get_one({"site": site, "page": nav_page})
+nav_top_page = wikidot.get_page(nav_page)
 nav_top_content = nav_top_page["content"].encode('utf8')
-k_start = nav_top_content.find(keyword_beg)
-k_end = nav_top_content.find(keyword_end)
 
-if k_start >= 0 and k_end >= 0 and k_end > k_start:
-    k_end = k_end + keyword_end.__len__()
+new_nav_top_content = find_keyword_and_insert_content(nav_top_content, keyword_beg, keyword_end, page_of_index)
 
-    new_nav_top_content = nav_top_content[0:k_start] + keyword_beg + page_of_index + keyword_end + nav_top_content[k_end:]
-
-    print(new_nav_top_content)
-    proxy.pages.save_one({'site': site, 'page': nav_page, 'content': new_nav_top_content})
+print(new_nav_top_content)
+wikidot.save_page(nav_page, content=new_nav_top_content)

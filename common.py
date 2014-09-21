@@ -98,85 +98,6 @@ def send_gmail(sender, recipient, subject, text, html, username, passwd):
 
 
 ##################
-## Settings
-##################
-if os.name == "posix":
-    settings_file = os.path.join(os.getenv('HOME'), ".h4notifier.ini")
-else:
-    settings_file = None
-
-volatile_settings = {
-    'username': 'USERNAME',
-    'password': 'PASSWORD',
-    'who': 'who@gmail.com',
-    'email_address': 'hackingthursday@googlegroups.com',
-    'wikidot_api_user': 'WIKIDOT_API_USER',
-    'wikidot_api_key': 'WIKIDOT_API_KEY',
-    'facebook_user': 'FB_USER',
-    'facebook_password': 'FB_PASS',
-    'facebook_api_key': 'FB_API_KEY',
-    'facebook_secret': 'FB_SECRET',
-    'facebook_gid': '############',
-    'bbs_user': 'guest',
-    'bbs_pass': '',
-    'googledoc_email': '',
-    'googledoc_password': '',
-}
-
-
-def config_get(sec, opt):
-    result = ""
-    if os.access(settings_file, os.R_OK):
-        config = ConfigParser.RawConfigParser()
-        config.read(settings_file)
-        try:
-            result = config.get(sec, opt)
-        except:
-            pass
-
-    return result
-
-
-def read_settings_from_file():
-        # Section: gmail
-        volatile_settings['username'] = config_get('gmail', 'username')
-        volatile_settings['password'] = config_get('gmail', 'password')
-
-        # Section: hackingthursday
-        volatile_settings['who'] = config_get('hackingthursday', 'who')
-        volatile_settings['email_address'] = config_get('hackingthursday', 'email_address')
-
-        # Section: wikidot
-        volatile_settings['wikidot_api_user'] = config_get('wikidot', 'wikidot_api_user')
-        volatile_settings['wikidot_api_key'] = config_get('wikidot', 'wikidot_api_key')
-
-        # Section: facebook
-        volatile_settings['facebook_password'] = config_get('facebook', 'password')
-        volatile_settings['facebook_user'] = config_get('facebook', 'username')
-        volatile_settings['facebook_api_key'] = config_get('facebook', 'facebook_api_key')
-        volatile_settings['facebook_secret'] = config_get('facebook', 'facebook_secret')
-        volatile_settings['facebook_gid'] = config_get('facebook', 'facebook_gid')
-
-        # Section: bbs
-        volatile_settings['bbs_user'] = config_get('bbs', 'user')
-        volatile_settings['bbs_pass'] = config_get('bbs', 'pass')
-
-        # Section: googledoc
-        volatile_settings['googledoc_email'] = config_get('googledoc', 'email')
-        volatile_settings['googledoc_password'] = config_get('googledoc', 'password')
-        volatile_settings['googledoc_spreadsheet'] = config_get('googledoc', 'spreadsheet')
-        volatile_settings['googledoc_worksheet'] = config_get('googledoc', 'worksheet')
-
-        value = config_get('googledoc', 'dryrun')
-        value = value.strip().lower()
-        if value in ["yes", "y", "true", "on"]:
-            value = True
-        else:
-            value = False
-        volatile_settings['googledoc_dryrun'] = value
-
-
-##################
 ## Contents
 ##################
 mail_content_header = '''
@@ -366,3 +287,18 @@ def show_userdata(sprd_data_row):
     print("筆名".rjust(12), ":", field05.replace('||', ', '))
     print("notify".rjust(10), ":", field06)
     print("備註".rjust(12), ":", field07)
+
+
+def find_keyword_and_insert_content(content, find_kw_beg, find_kw_end, ins_str):
+    ins_pos_beg = content.find(find_kw_beg) + find_kw_beg.__len__()
+    if find_kw_beg is None:
+        ins_pos_end = ins_pos_beg
+    else:
+        ins_pos_end = content.find(find_kw_end)
+
+    if ins_pos_beg >= 0 and ins_pos_end >= ins_pos_beg:
+        new_content = content[0:ins_pos_beg] + ins_str + content[ins_pos_end:]
+    else:
+        new_content = content
+
+    return new_content
