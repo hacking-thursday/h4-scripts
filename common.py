@@ -21,6 +21,7 @@ import ConfigParser
 from BeautifulSoup import BeautifulSoup
 
 import tempfile
+import subprocess
 
 import re
 import sys
@@ -302,3 +303,25 @@ def find_keyword_and_insert_content(content, find_kw_beg, find_kw_end, ins_str):
         new_content = content
 
     return new_content
+
+
+def get_diff_output_between_two_string(orig, after):
+    tmp_old = tempfile.mktemp()
+    tmp_new = tempfile.mktemp()
+    string2file(orig, tmp_old)
+    string2file(after, tmp_new)
+    cmd = "diff -Naur %s %s" % (tmp_old, tmp_new)
+    out = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()[0]
+    os.unlink(tmp_old)
+    os.unlink(tmp_new)
+
+    return out
+
+
+def php_parse_wikidot_heading(path):
+    cmd_path = os.path.join(root_path, 'parse_wikidot_heading.php')
+    cmd = "php %s --file='%s'" % (cmd_path, path)
+    out = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()[0]
+    result = out.strip().split('\n')
+
+    return result

@@ -15,8 +15,6 @@ from lib.Config import Config
 from lib.Wikidot import Wikidot
 import re
 import os
-import subprocess
-import tempfile
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 cache_dir = os.path.join(ROOT, "_cache")
@@ -103,9 +101,7 @@ def list_headings(page):
     for p in exist_pages:
         if p[:page.__len__()] == page:
             p_path = os.path.join(cache_dir, p)
-            cmd = "php parse_wikidot_heading.php --file='%s'" % p_path
-            out = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()[0]
-            result = out.strip().split('\n')
+            result = php_parse_wikidot_heading(p_path)
 
     return result
 
@@ -433,14 +429,7 @@ for author in authors:
         continue
 
     # 顯示差異的部分
-    tmp_old = tempfile.mktemp()
-    tmp_new = tempfile.mktemp()
-    string2file(page_of_author_orig, tmp_old)
-    string2file(page_of_author, tmp_new)
-    cmd = "diff -Naur %s %s" % (tmp_old, tmp_new)
-    out = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()[0]
-    os.unlink(tmp_old)
-    os.unlink(tmp_new)
+    out = get_diff_output_between_two_string(page_of_author_orig, page_of_author)
     print("==== %s 新舊差異的部分 ===========" % author)
     print(out)
     print("==================================")
