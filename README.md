@@ -15,7 +15,7 @@
 
 ## Ubuntu
 ```
-apt-get install python-pip mercurial tidy php5-cli
+apt-get install python-pip mercurial tidy php5-cli php-pear
 pip install -r requirements.txt
 make setup
 ```

@@ -4,7 +4,7 @@ help:  # 顯示命令列表
 setup: # 安裝 dependencies
 	test -d _logs || mkdir _logs
 	test -d 3rd || mkdir 3rd
-	test -d 3rd/wikidot/ || ( cd 3rd; git clone git://github.com/gabrys/wikidot.git )
+	test -d 3rd/wikidot/ || ( cd 3rd; git clone git://github.com/gabrys/wikidot.git; cd wikidot/; git apply ../0001-php-syntax-deprecated.patch )
 
 run-wiki:   # wididot 之個人頁面 rebuild
 	./h4_wikidot_rebuild 2>&1 | tee _logs/h4_wikidot_rebuild_$$(date "+%Y-%m-%d_%H%M%S").log
