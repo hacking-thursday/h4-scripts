@@ -511,7 +511,6 @@ Hi %s 您好:
     receivers = Reciver.split(',')
     for item in receivers:
         receiver = item.strip()
-        common.send_gmail(Sender, receiver, Subject, Txt, Html, googledoc_user, googledoc_pass)
         gmail.send(Sender, receiver, Subject, Txt, Html)
 
 #
