@@ -128,7 +128,7 @@ def find_author_by_name(url_name):
 
 
 def partition_page(page):
-    content = get_page_content(page)
+    content = wikidot.get_page_content(page)
     headings = list_headings(page)
 
     pos_ary = []
@@ -370,7 +370,7 @@ authors = list_authors()
 for author in authors:
     page_of_author = process_page_per_author(author)
     page = "user:" + author.lower()
-    user_head, page_of_author_orig = page_split_by_keyword(get_page_content(page), "[[toc]]")
+    user_head, page_of_author_orig = page_split_by_keyword(wikidot.get_page_content(page), "[[toc]]")
     cnt = get_author_cnt(author.lower())
 
     if page_of_author == page_of_author_orig or cnt <= 0:
