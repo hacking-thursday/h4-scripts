@@ -110,17 +110,6 @@ Facebook群組: http://www.facebook.com/groups/hackingday/
 '''
 
 
-def file2string(path):
-    result = ""
-    f = open(path)
-    for line in f:
-        result += line
-
-    f.close()
-
-    return result
-
-
 def string2file(string, path):
     f = open(path, 'w')
     f.write(string)
