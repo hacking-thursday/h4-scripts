@@ -8,6 +8,18 @@ from xmlrpclib import ServerProxy
 EP_URL = 'www.wikidot.com/xml-rpc-api.php'
 CACHE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "_cache")
 
+
+def file2string(path):
+    result = ""
+    f = open(path)
+    for line in f:
+        result += line
+
+    f.close()
+
+    return result
+
+
 class Wikidot():
     def auth(self, user, key):
         try:
