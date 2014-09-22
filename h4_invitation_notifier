@@ -13,7 +13,7 @@ import common
 from lib.Config import Config
 from lib.Gmail import Gmail
 
-PartyDate = common.thisThursday()
+PartyDate = common.getThursday(0)
 
 config = Config()
 username = config['gmail']['username']

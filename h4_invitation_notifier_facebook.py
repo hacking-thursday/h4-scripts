@@ -13,7 +13,7 @@ username = config['facebook']['username']
 password = config['facebook']['password']
 facebook_group_id = config['facebook']['group_id']
 
-this_thursday = common.thisThursday()
+this_thursday = common.getThursday(0)
 title = 'HackingThursday固定聚會(%s)' % this_thursday
 description = "地點：伯朗咖啡 (建國店)\n地址：台北市大安區建國南路一段 166 號\n(捷運忠孝新生站三號出口，沿忠孝東路走至建國南路右轉)\n\nWhat you can do in H4 :\n1. Code your code.\n2. Talk about OS, Programming, Hacking skills, Gossiping ...\n3. Meet new friends ~\n4. Hack and share anything !\n\nSee details :\nhttp://www.hackingthursday.org/\n\nWeekly Share :\nhttp://sync.in/h4"
 start_time = '%sT07:30:00-0400' % this_thursday

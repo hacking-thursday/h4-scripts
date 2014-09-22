@@ -11,7 +11,7 @@ logger = Logger('h4_invitation_notifier_ptt').__new__()
 config = Config()
 ID = config['bbs']['user']
 PASSWORD = config['bbs']['pass']
-PartyDate = common.thisThursday()
+PartyDate = common.getThursday(0)
 
 board = 'Linux'
 subject = 'HackingThursday 固定聚會 (%s)' % PartyDate

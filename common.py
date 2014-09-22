@@ -34,45 +34,47 @@ import html2text  # pip version decode error, using 3rd-party instead
 import lib.GoogleSpreadsheetAPI
 
 
-def thisThursday():
-    delta_days = 4 - datetime.date.today().isoweekday()
-    this_thursday = datetime.date.today() + datetime.timedelta(days=delta_days)
-    return this_thursday.isoformat()
+# idx == 0 => 這一週的星期四
+# idx == 1 => 下一週的星期四
+# idx == 2 => 下下一週的星期四
+# idx == -1 => 上一週的星期四
+# idx == -2 => 上上一週的星期四
+# ...以此類推
+def getThursday(idx, fmt="default"):
+    delta_days = 4 - datetime.date.today().isoweekday() + idx * 7
+    the_thursday = datetime.date.today() + datetime.timedelta(days=delta_days)
+    if fmt == "default":
+        res = the_thursday.isoformat()
+    elif fmt == "fb":
+        res = the_thursday.strftime('X%m/X%d/X%Y').replace('X0', 'X').replace('X', '')
+    else:
+        res = the_thursday.isoformat()
+
+    return res
+
+
+# 回傳 0 => 這一週
+# 回傳 1 => 下一週
+# 回傳 2 => 下下一週
+# 回傳 -1 => 上一週
+# 回傳 -2 => 上上一週
+# 回傳 False => 非星期四
+def chkThursday(date_str):
+    base_day = datetime.datetime.strptime(getThursday(0), "%Y-%m-%d").date()
+    this_day = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+
+    delta_days = (this_day - base_day).days
+    if delta_days % 7 == 0:
+        res = delta_days / 7
+    else:
+        res = False
+    return res
 
 
 def thisThursday_fb_format():
     delta_days = 4 - datetime.date.today().isoweekday()
     this_thursday = datetime.date.today() + datetime.timedelta(days=delta_days)
     return this_thursday.strftime('X%m/X%d/X%Y').replace('X0', 'X').replace('X', '')
-
-
-def nextThursday(this_thursday_str):
-    this_thursday = datetime.datetime.strptime(this_thursday_str, "%Y-%m-%d")
-    next_thursday = this_thursday + datetime.timedelta(days=7)
-    result = next_thursday.date().isoformat()
-    return result
-
-
-def prevThursday(this_thursday_str):
-    this_thursday = datetime.datetime.strptime(this_thursday_str, "%Y-%m-%d")
-    prev_thursday = this_thursday + datetime.timedelta(days=-7)
-    result = prev_thursday.date().isoformat()
-    return result
-
-
-def isThursday(date_str):
-    this_day = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
-    result = (this_day.isoweekday() == 4)
-    return result
-
-
-def isFuture(date_str):
-    this_day = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
-    today = datetime.date.today()
-    if today >= this_day:
-        return False
-    else:
-        return True
 
 
 #

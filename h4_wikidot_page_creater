@@ -18,9 +18,9 @@ config = Config()
 user_app = config['wikidot']['wikidot_api_user']
 key = config['wikidot']['wikidot_api_key']
 
-tomorrow = thisThursday()
-lastweek = prevThursday(tomorrow)
-nextweek = nextThursday(tomorrow)
+tomorrow = getThursday(0)
+lastweek = getThursday(-1)
+nextweek = getThursday(1)
 site = 'hackingthursday'
 page = tomorrow
 title = tomorrow + ' 聚會手記'
