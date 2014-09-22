@@ -133,26 +133,12 @@ def string2file(string, path):
     f.close()
 
 
-def html2xml(the_html):
-    result = ""
-    htmlfile = tempfile.mktemp()
-    xmlfile = tempfile.mktemp()
-    string2file(the_html, htmlfile)
-    os.system("tidy -q -asxhtml -numeric -utf8 < " + htmlfile + " > " + xmlfile)
-    result = file2string(xmlfile)
-    os.system("rm " + htmlfile)
-    os.system("rm " + xmlfile)
-
-    return result
-
-
 def html2txt(the_html):
     result = html2text.html2text(the_html.decode('utf-8'), '').encode('utf-8')
     return result
 
 
 def get_wikidot_content_body(URL):
-    xmlfile = tempfile.mktemp()
     htmlfile = tempfile.mktemp()
 
     os.system("wget -O " + htmlfile + " " + URL)
@@ -165,23 +151,7 @@ def get_wikidot_content_body(URL):
     for d in div:
         res_txt += d.prettify()
 
-    os.system("rm " + xmlfile)
     result = res_txt
-
-    return result
-
-
-def get_etherpad_content_body(URL):
-    htmlfile = tempfile.mktemp()
-
-    ret = os.system("wget -O " + htmlfile + " " + URL)
-    if ret == 0:
-        the_html = file2string(htmlfile)
-    else:
-        the_html = None
-    os.system("rm " + htmlfile)
-
-    result = the_html
 
     return result
 
