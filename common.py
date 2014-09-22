@@ -71,12 +71,6 @@ def chkThursday(date_str):
     return res
 
 
-def thisThursday_fb_format():
-    delta_days = 4 - datetime.date.today().isoweekday()
-    this_thursday = datetime.date.today() + datetime.timedelta(days=delta_days)
-    return this_thursday.strftime('X%m/X%d/X%Y').replace('X0', 'X').replace('X', '')
-
-
 #
 # send_gmail("matlinuxer2@gmail.com", "matlinuxer2@gmail.com", "Hello from python!", "<hr/><h1>hello from python</h1><hr/>", "USERNAME", "PASSWORD")
 #
