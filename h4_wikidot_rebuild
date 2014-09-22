@@ -13,6 +13,7 @@ import common
 from common import *
 from lib.Config import Config
 from lib.Wikidot import Wikidot
+from lib.Gmail import Gmail
 import re
 import os
 
@@ -32,6 +33,9 @@ googledoc_pass = config['googledoc']['password']
 spreadsheet = config['googledoc']['spreadsheet']
 worksheet = config['googledoc']['worksheet']
 dryrun = config['googledoc']['dryrun']
+
+gmail = Gmail()
+gmail.login(googledoc_user, googledoc_pass)
 
 #
 # 程式資料結構
@@ -508,6 +512,7 @@ Hi %s 您好:
     for item in receivers:
         receiver = item.strip()
         common.send_gmail(Sender, receiver, Subject, Txt, Html, googledoc_user, googledoc_pass)
+        gmail.send(Sender, receiver, Subject, Txt, Html)
 
 #
 # 通知作者有頁面更新
