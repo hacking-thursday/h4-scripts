@@ -1,8 +1,10 @@
 # Install
 
 ## 設定 API 資訊
-    $ cp dot.h4notifier.ini $HOME/.h4notifier.ini
-    $ vi $HOME/.h4notifier.ini
+```Shell
+$ cp dot.h4notifier.ini $HOME/.h4notifier.ini
+$ vi $HOME/.h4notifier.ini
+```
 
 ## 安裝系統工具
 
