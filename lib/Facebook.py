@@ -226,13 +226,18 @@ class Graph():
         query = '/me/groups'
         url = GRAPH_URL + query + '?access_token=' + self.token
 
-        groups = None
-        try:
-            connection = urllib2.urlopen(url)
+        connection = urllib2.urlopen(url)
+        response = connection.read()
+        group_data = simplejson.loads(response)
+        groups = [{'id': group['id'], 'name': group['name']} for group in group_data['data']]
+
+        while 'paging' in group_data and 'next' in group_data['paging']:
+            connection = urllib2.urlopen(group_data['paging']['next'])
             response = connection.read()
-            groups = simplejson.loads(response)
-        finally:
-            return groups
+            group_data = simplejson.loads(response)
+            groups = groups + [{'id': group['id'], 'name': group['name']} for group in group_data['data']]
+
+        return groups
 
     def getRecentEvents(self, facebook_id):
         query = '/v2.1/%s/events' % facebook_id
