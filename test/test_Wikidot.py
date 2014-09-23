@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import common
 from Config import Config
 from Wikidot import Wikidot
 
@@ -21,24 +20,28 @@ content = '''
 [[/code]]
 '''
 
-
 wikidot = Wikidot()
 
 
 def test_auth():
     assert wikidot.auth(user_app, key)
 
+
 def test_set_site():
     assert wikidot.set_site(site)
+
 
 def test_save_page():
     assert wikidot.save_page(page_url, title, content)
 
+
 def test_get_page():
     assert wikidot.get_page(page_url)
 
+
 def test_get_pages_meta():
     assert wikidot.get_pages_meta(page_url)
+
 
 def test_list_pages():
     assert wikidot.list_pages()
