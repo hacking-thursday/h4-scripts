@@ -27,7 +27,7 @@
     $ ./h4cli [--dry-run] wikidot --do-rebuild    Parse 聚會手記，然後整理成個人筆記紀錄
 
 # 測試
-    $ nosetests --exe -v test
+    $ make test
 
 # deprecated
     h4_etherpad_notifier        提醒 etherpad 有變更
