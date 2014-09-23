@@ -1,22 +1,20 @@
 # Install
 
 ## 設定 API 資訊
-```sh
-$ cp dot.h4notifier.ini $HOME/.h4notifier.ini
-$ vi $HOME/.h4notifier.ini
-```
+    $ cp dot.h4notifier.ini $HOME/.h4notifier.ini
+    $ vi $HOME/.h4notifier.ini
 
 ## 安裝系統工具
 
 ### Ubuntu
     # apt-get install python-pip mercurial tidy php5-cli php-pear
-    # make setup
+    $ make setup
 
 ## 安裝 Python 函式庫
     $ virtualenv --no-site-package virtenv --python=python2.7
     $ virtenv/bin/activate
     $ pip install -r requirements.txt
-    
+
 # 值日生
     $ ./h4cli [--dry-run] invite --email    發送聚會通知至 mail
     $ ./h4cli [--dry-run] invite --fb       發送聚會通知至 Facebook
