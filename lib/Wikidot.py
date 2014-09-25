@@ -144,3 +144,25 @@ class Wikidot():
                 result = p_path
 
         return result
+
+
+    def list_date_pages(self):
+            ret_data = []
+
+            pages = self.list_pages()
+            for page in pages:
+                if page[0:2] == "20" and page[4] == "-" and page[7] == "-":
+                    ret_data += [page]
+
+            return ret_data
+
+
+    def list_user_pages(self):
+            ret_data = []
+
+            pages = self.list_pages()
+            for page in pages:
+                if page[0:5] == "user:":
+                    ret_data += [page]
+
+            return ret_data

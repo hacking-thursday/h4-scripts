@@ -282,28 +282,6 @@ def process_page_per_author(author):
     return page_content
 
 
-def wikidot_list_date_pages():
-        ret_data = []
-
-        pages = wikidot.list_pages()
-        for page in pages:
-            if page[0:2] == "20" and page[4] == "-" and page[7] == "-":
-                ret_data += [page]
-
-        return ret_data
-
-
-def wikidot_list_user_pages():
-        ret_data = []
-
-        pages = wikidot.list_pages()
-        for page in pages:
-            if page[0:5] == "user:":
-                ret_data += [page]
-
-        return ret_data
-
-
 def page_split_by_keyword(text, keyword):
         pos = text.rfind(keyword)
 
@@ -335,8 +313,8 @@ user_mapping_pre = fetch_googledoc_spreadsheet(googledoc_user, googledoc_pass, s
 user_mapping = convert_spreadsheet_to_userdata(user_mapping_pre)
 
 # 列出要處理的頁面
-user_pages = wikidot_list_user_pages()
-date_pages = wikidot_list_date_pages()
+user_pages = wikidot.list_user_pages()
+date_pages = wikidot.list_date_pages()
 wikidot.pull_and_cache_pages()  # 下載並更新頁面 cache
 
 date_pages.sort(reverse=True)  # 將最新日期放在最前面
