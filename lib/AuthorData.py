@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+
 def normalize_alias(alias):
     result = alias
     result = result.replace(':', '')

@@ -87,7 +87,6 @@ class Wikidot():
         else:
             return pages
 
-
     #
     # 將頁面資料從 wikidot 先下載到本地端作cache
     #
@@ -123,7 +122,6 @@ class Wikidot():
             # 跳下一輪
             pages = pages[10:]
 
-
     def get_page_content(self, page):
         result = ""
 
@@ -132,7 +130,6 @@ class Wikidot():
             result = file2string(p_path)
 
         return result
-
 
     def get_page_cache_path(self, page):
         result = None
@@ -145,7 +142,6 @@ class Wikidot():
 
         return result
 
-
     def list_date_pages(self):
             ret_data = []
 
@@ -155,7 +151,6 @@ class Wikidot():
                     ret_data += [page]
 
             return ret_data
-
 
     def list_user_pages(self):
             ret_data = []
