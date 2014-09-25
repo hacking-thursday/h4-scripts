@@ -62,8 +62,8 @@ class Gmail():
                 self.smtp.sendmail(sender, list(chain(recipient, cc)), msg.as_string())
 
             return True
-        except Exception, error:
-            print "Unable to send e-mail: '%s'." % str(error)
+        except Exception as error:
+            print("Unable to send e-mail: '%s'." % str(error))
 
             return False
 

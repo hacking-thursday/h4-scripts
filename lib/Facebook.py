@@ -108,8 +108,7 @@ class Facebook():
         if found:
             id = found[0]
 
-            print 'Facebook ID : ',
-            print id
+            print('Facebook ID : ', id)
 
             return id
 
@@ -124,8 +123,7 @@ class Facebook():
         if found:
             id = found[0]
 
-            print 'Facebook Group ID : ',
-            print id
+            print('Facebook Group ID : ', id)
 
             return id
 
