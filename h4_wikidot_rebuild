@@ -14,6 +14,7 @@ from common import *
 from lib.Config import Config
 from lib.Wikidot import Wikidot
 from lib.Gmail import Gmail
+from lib.AuthorData import AuthorData
 import re
 import os
 
@@ -33,103 +34,17 @@ googledoc_pass = config['googledoc']['password']
 spreadsheet = config['googledoc']['spreadsheet']
 worksheet = config['googledoc']['worksheet']
 dryrun = config['googledoc']['dryrun']
+dryrun = True
 
 gmail = Gmail()
 gmail.login(googledoc_user, googledoc_pass)
 
-#
-# 程式資料結構
-#
-collection = []
-collection2 = []
-collection3 = []
-collection4 = []
-user_mapping = []
-authors_cnt = []
-
-
-def list_headings(page):
-    result = []
-
-    p_path = wikidot.get_page_cache_path(page)
-    if p_path is not None:
-        result = php_parse_wikidot_heading(p_path)
-
-    return result
-
-
-def append_data_per_author(author, date, data):
-    global collection
-
-    collection += [(author, date, data)]
-
-
-def collect_unmapped_headding(heading, page):
-    global collection2
-
-    collection2 += [(page, heading)]
-
-
-def collect_notify(url_name):
-    global collection3
-
-    collection3 += [url_name]
-
-
-def collect_unnotify(url_name):
-    global collection4
-
-    collection4 += [url_name]
-
-
-def normalize_alias(alias):
-    result = alias
-    result = result.replace(':', '')
-    result = result.replace(',', '')
-    result = result.replace('.', '')
-    result = result.replace('-', '')
-    result = result.replace('\'', '')
-    result = result.replace('"', '')
-    result = result.replace('_', '')
-    result = result.replace(' ', '')
-    result = result.lower()
-    result = result.strip()
-
-    return result
-
-
-def find_author_by_heading(heading):
-    global user_mapping
-
-    result = None
-
-    alias = normalize_alias(heading)
-
-    for row in user_mapping:
-        aliases = row['alias']
-        for a in aliases:
-                a2 = normalize_alias(a)
-                if alias == a2:
-                        result = row
-
-    return result
-
-
-def find_author_by_name(url_name):
-    global user_mapping
-
-    result = None
-
-    for row in user_mapping:
-        if url_name == row['url_name']:
-                result = row
-
-    return result
+ad_obj = AuthorData()
 
 
 def partition_page(page):
     content = wikidot.get_page_content(page)
-    headings = list_headings(page)
+    headings = wikidot.list_headings(page)
 
     pos_ary = []
     parts = []
@@ -159,151 +74,6 @@ def partition_page(page):
     return parts
 
 
-def parse_data_from_page(page):
-    parts = partition_page(page)
-
-    for part in parts:
-        heading_str = part[0]
-        data = part[1]
-
-        heading_ary = heading_str.split(',')
-        for heading in heading_ary:
-            heading = heading.strip()
-
-            # 如果該段是作者，則加入資料收集
-            author_data = find_author_by_heading(heading)
-            if author_data is not None:
-                author = author_data['url_name']
-                print("mapped  :: %s/%s :: %s => %s " % (root_url, page, heading, author))
-                append_data_per_author(author, page, data)
-            else:
-                print("unmapped:: %s/%s :: %s " % (root_url, page, heading))
-                collect_unmapped_headding(heading, page)
-
-
-def list_authors():
-    result = []
-    for item in user_mapping:
-        name = item['url_name']
-        if name in result:
-            continue
-
-        if name.strip() == "":
-            continue
-
-        result += [name]
-
-    return result
-
-
-def make_index_of_authors():
-    result = """
-* [# H4ckers]
-"""
-    authors = list_authors()
-    authors2 = []
-    for au in authors:
-        if get_author_cnt(au.lower()) > 0:
-                authors2.append(au)
-    authors = authors2
-
-    #en_char = "abcdefghijklmnopqrstuvwxyz"
-    data_dict = {
-        "abc": [],
-        "def": [],
-        "ghi": [],
-        "jkl": [],
-        "mno": [],
-        "pqr": [],
-        "stu": [],
-        "vwx": [],
-        "yz": [],
-    }
-    data_dict_nonen = []
-
-    en_keys = data_dict.keys()
-    en_keys.sort()  # 這裡作一次排序，以避免字母順序錯誤
-
-    for author in authors:
-        isNonEn = True
-        for key in en_keys:
-            if author[0].lower() in key and not author in data_dict[key]:
-                    data_dict[key] += [author]
-                    isNonEn = False
-        if isNonEn:
-            data_dict_nonen += [author]
-
-    for key in en_keys:
-        result += """ * [# 字母%s-%s]
-""" % (key[:1].upper(), key[-1:].upper())
-        items = data_dict[key]
-        items.sort()  # 這裡作一次排序
-        for item in items:
-
-            # 這裡將作者名稱再轉成更個人化一些
-            author_data = find_author_by_name(item)
-            rel_name = author_data['rel_name']
-
-            if item.lower() == rel_name.lower() or rel_name.strip() == "":
-                    name = "%s" % (item)
-            else:
-                    name = "%s (%s)" % (rel_name, item)
-
-            result += "  * [[[user:" + item + "|" + name + "]]]\n"
-
-    # 目前 wikidot 不支援中文條目
-    result += """ * [# 非英文字母]
-  * [[[user:non-en]]]
-"""
-
-    for item in data_dict_nonen:
-        print("非英文項目: ", item)
-
-    return result
-
-
-def process_page_per_author(author):
-    page_content = """
-[[toc]]
-"""
-
-    for cc in collection:
-        name = cc[0]
-        date = cc[1]
-        rows = cc[2]
-        if name.lower() == author.lower():
-            page_content += "\n+ " + date + "\n"
-            page_content += "來源: [[[" + date + "]]]\n"
-            for row in rows:
-                page_content += row + "\n"
-
-    page_content = page_content.strip()  # Normalize
-
-    return page_content
-
-
-def wikidot_list_date_pages():
-        ret_data = []
-
-        pages = wikidot.list_pages()
-        for page in pages:
-            if page[0:2] == "20" and page[4] == "-" and page[7] == "-":
-                ret_data += [page]
-
-        return ret_data
-
-
-def wikidot_list_user_pages():
-        ret_data = []
-
-        pages = wikidot.list_pages()
-        for page in pages:
-            if page[0:5] == "user:":
-                ret_data += [page]
-
-        return ret_data
-
-
 def page_split_by_keyword(text, keyword):
         pos = text.rfind(keyword)
 
@@ -317,61 +87,53 @@ def page_split_by_keyword(text, keyword):
         return head, body
 
 
-def get_author_cnt(rel_name):
-        global authors_cnt
-
-        cnt = -1
-        for row in authors_cnt:
-            if row[0] == rel_name:
-                cnt = row[1]
-
-        return cnt
-
 #
 # Main routine below
 #
 
 user_mapping_pre = fetch_googledoc_spreadsheet(googledoc_user, googledoc_pass, spreadsheet, worksheet)
-user_mapping = convert_spreadsheet_to_userdata(user_mapping_pre)
+ad_obj.user_mapping = convert_spreadsheet_to_userdata(user_mapping_pre)
 
 # 列出要處理的頁面
-user_pages = wikidot_list_user_pages()
-date_pages = wikidot_list_date_pages()
+user_pages = wikidot.list_user_pages()
+date_pages = wikidot.list_date_pages()
 wikidot.pull_and_cache_pages()  # 下載並更新頁面 cache
 
 date_pages.sort(reverse=True)  # 將最新日期放在最前面
 for page in date_pages:
     print("處理頁面: ", page)
-    parse_data_from_page(page)
+    # workaround
+    parts = partition_page(page)
+    ad_obj.parse_data_from_page(page, parts)
 
 #
 # 列出每個作者的統計資訊
 #
 print("==== 列出每個作者的統計資訊 ============================")
-authors = list_authors()
+authors = ad_obj.list_authors()
 for author in authors:
     cnt = 0
-    for cc in collection:
+    for cc in ad_obj.collection:
         name = cc[0]
         if name == author:
                 cnt += 1
-    authors_cnt += [(author, cnt)]
+    ad_obj.authors_cnt += [(author, cnt)]
 
-authors_cnt.sort(key=lambda x: x[1], reverse=True)
+ad_obj.authors_cnt.sort(key=lambda x: x[1], reverse=True)
 
-for row in authors_cnt:
+for row in ad_obj.authors_cnt:
     print("%s  %s" % (str(row[1]).rjust(4), row[0]))
 exit()
 #
 # 更新個別作者的頁面
 #
 print("==== 更新個別作者的頁面 =========================")
-authors = list_authors()
+authors = ad_obj.list_authors()
 for author in authors:
-    page_of_author = process_page_per_author(author)
+    page_of_author = ad_obj.process_page_per_author(author)
     page = "user:" + author.lower()
     user_head, page_of_author_orig = page_split_by_keyword(wikidot.get_page_content(page), "[[toc]]")
-    cnt = get_author_cnt(author.lower())
+    cnt = ad_obj.get_author_cnt(author.lower())
 
     if page_of_author == page_of_author_orig or cnt <= 0:
         # 內容沒有變動，或無個人筆記的，跳過不更新
@@ -385,7 +147,7 @@ for author in authors:
 
     page_of_author = user_head + page_of_author  # 加上保留的使用者編輯內容
 
-    author_data = find_author_by_name(author)
+    author_data = ad_obj.find_author_by_name(author)
     name = author_data['rel_name']
     notify = author_data['notify']
 
@@ -408,7 +170,7 @@ for author in authors:
 #
 # Calucate user statics
 #
-ary_local = list_authors()
+ary_local = ad_obj.list_authors()
 ary_remote = []
 for user_page in user_pages:
         user = user_page[5:]
@@ -443,7 +205,7 @@ print("========================================")
 
 
 # 展開作者列表
-page_of_index = make_index_of_authors()
+page_of_index = ad_obj.make_index_of_authors()
 print(page_of_index)
 
 # 將作者列表塞到主選單中
@@ -460,7 +222,8 @@ if dryrun is not True:
 
 
 def send_notify_mail(author):
-    author_data = find_author_by_name(author)
+    global ad_obj
+    author_data = ad_obj.find_author_by_name(author)
     rel_name = author_data['rel_name']
     url_name = author_data['url_name']
     email = author_data['email']
@@ -517,8 +280,8 @@ Hi %s 您好:
 # 通知作者有頁面更新
 #
 print("==== 通知作者有頁面更新 ==================================")
-for author in collection3:
-    author_data = find_author_by_name(author)
+for author in ad_obj.collection3:
+    author_data = ad_obj.find_author_by_name(author)
     rel_name = author_data['rel_name']
     url_name = author_data['url_name']
     email = author_data['email']
@@ -536,9 +299,9 @@ for author in collection3:
             print('  skiping: "%s" <%s> , %s/user:%s ' % (rel_name, email, root_url, url_name))
 
 print("==== 未對應之作者 ==================================")
-for item in collection2:
+for item in ad_obj.collection2:
         print("%s/%s '%s' " % (root_url, item[0], item[1]))
 
 print("==== 未開通之作者 ==================================")
-for item in collection4:
+for item in ad_obj.collection4:
         print(item)

@@ -271,12 +271,3 @@ def get_diff_output_between_two_string(orig, after):
     os.unlink(tmp_new)
 
     return out
-
-
-def php_parse_wikidot_heading(path):
-    cmd_path = os.path.join(root_path, 'parse_wikidot_heading.php')
-    cmd = "php %s --file='%s'" % (cmd_path, path)
-    out = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()[0]
-    result = out.strip().split('\n')
-
-    return result

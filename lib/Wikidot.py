@@ -2,11 +2,21 @@
 # encoding: utf-8
 
 import os
+import subprocess
 import xmlrpclib
 from xmlrpclib import ServerProxy
 
 EP_URL = 'www.wikidot.com/xml-rpc-api.php'
 CACHE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "_cache")
+
+
+def php_parse_wikidot_heading(path):
+    cmd_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "parse_wikidot_heading.php")
+    cmd = "php %s --file='%s'" % (cmd_path, path)
+    out = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()[0]
+    result = out.strip().split('\n')
+
+    return result
 
 
 def file2string(path):
@@ -87,7 +97,6 @@ class Wikidot():
         else:
             return pages
 
-
     #
     # 將頁面資料從 wikidot 先下載到本地端作cache
     #
@@ -123,7 +132,6 @@ class Wikidot():
             # 跳下一輪
             pages = pages[10:]
 
-
     def get_page_content(self, page):
         result = ""
 
@@ -133,7 +141,6 @@ class Wikidot():
 
         return result
 
-
     def get_page_cache_path(self, page):
         result = None
 
@@ -142,5 +149,34 @@ class Wikidot():
             if p[:page.__len__() + 1] == page + "@":
                 p_path = os.path.join(CACHE_DIR, p)
                 result = p_path
+
+        return result
+
+    def list_date_pages(self):
+            ret_data = []
+
+            pages = self.list_pages()
+            for page in pages:
+                if page[0:2] == "20" and page[4] == "-" and page[7] == "-":
+                    ret_data += [page]
+
+            return ret_data
+
+    def list_user_pages(self):
+            ret_data = []
+
+            pages = self.list_pages()
+            for page in pages:
+                if page[0:5] == "user:":
+                    ret_data += [page]
+
+            return ret_data
+
+    def list_headings(self, page):
+        result = []
+
+        p_path = self.get_page_cache_path(page)
+        if p_path is not None:
+            result = php_parse_wikidot_heading(p_path)
 
         return result
