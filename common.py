@@ -31,7 +31,6 @@ sys.path.append(os.path.join(root_path, '3rd'))
 sys.path.append(os.path.join(root_path, '3rd', 'gdata-python-client', 'src'))
 
 import html2text  # pip version decode error, using 3rd-party instead
-import lib.GoogleSpreadsheetAPI
 
 
 # idx == 0 => 這一週的星期四
@@ -137,58 +136,6 @@ def get_wikidot_content_body(URL):
     result = res_txt
 
     return result
-
-
-def fetch_googledoc_spreadsheet(email, password, spreadsheet_name, worksheet_name):
-    res_ary = []
-    col_mapping = {}
-    result_ary = {}
-
-    # 取得列表內容
-    spr = lib.GoogleSpreadsheetAPI.Spreadsheet(email, password, spreadsheet_name)
-    work = lib.GoogleSpreadsheetAPI.Spreadsheet.Worksheet(spr, worksheet_name)
-    feed = work.getCells()
-
-    for i, entry in enumerate(feed.entry):
-        #print (i, entry.title.text, entry.content.text)
-        pattern = r"(\w)(\d+)"
-        matches = re.findall(pattern, entry.title.text)
-        #print matches
-        col_idx = matches[0][0]
-        row_idx = matches[0][1]
-
-        res_ary.append((row_idx, col_idx, entry.content.text))
-
-    # 取得欄位名稱對應
-    for item in res_ary:
-        row_idx = item[0]
-        col_idx = item[1]
-        value = item[2]
-
-        if row_idx == "1":
-            col_mapping[col_idx] = value.strip()
-
-    # 處理並產生回傳陣列
-    for item in res_ary:
-        row_idx = item[0]
-        col_idx = item[1]
-        value = item[2]
-
-        if row_idx != '1':
-            if not row_idx in result_ary:
-                result_ary[row_idx] = {}
-                for col_name in col_mapping.values():
-                    result_ary[row_idx][col_name] = ''
-
-            col_name = col_mapping[col_idx]
-
-            # 修正手機的格式
-            if col_name == "Mobile" and value.__len__() == 9:
-                value = "0" + value
-
-            result_ary[row_idx][col_name] = value
-
-    return result_ary
 
 
 def convert_spreadsheet_to_userdata(sprd_data):
