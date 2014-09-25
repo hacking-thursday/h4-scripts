@@ -42,19 +42,9 @@ gmail.login(googledoc_user, googledoc_pass)
 ad_obj = AuthorData()
 
 
-def list_headings(page):
-    result = []
-
-    p_path = wikidot.get_page_cache_path(page)
-    if p_path is not None:
-        result = php_parse_wikidot_heading(p_path)
-
-    return result
-
-
 def partition_page(page):
     content = wikidot.get_page_content(page)
-    headings = list_headings(page)
+    headings = wikidot.list_headings(page)
 
     pos_ary = []
     parts = []

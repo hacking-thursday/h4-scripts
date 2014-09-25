@@ -2,11 +2,21 @@
 # encoding: utf-8
 
 import os
+import subprocess
 import xmlrpclib
 from xmlrpclib import ServerProxy
 
 EP_URL = 'www.wikidot.com/xml-rpc-api.php'
 CACHE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "_cache")
+
+
+def php_parse_wikidot_heading(path):
+    cmd_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "parse_wikidot_heading.php")
+    cmd = "php %s --file='%s'" % (cmd_path, path)
+    out = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()[0]
+    result = out.strip().split('\n')
+
+    return result
 
 
 def file2string(path):
@@ -161,3 +171,12 @@ class Wikidot():
                     ret_data += [page]
 
             return ret_data
+
+    def list_headings(self, page):
+        result = []
+
+        p_path = self.get_page_cache_path(page)
+        if p_path is not None:
+            result = php_parse_wikidot_heading(p_path)
+
+        return result
