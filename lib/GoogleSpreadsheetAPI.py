@@ -51,6 +51,10 @@ class Spreadsheet:
 
         return worksheet_id
 
+    def getWorksheetCellArray(self, worksheet):
+        worksheet = self.Worksheet(self, worksheet)
+        return worksheet.getCellArray()
+
     class Worksheet:
         ''' An iterable google spreadsheet object.  Each row is a dictionary with an entry for each field, keyed by the header.  GData libraries from Google must be installed.'''
 

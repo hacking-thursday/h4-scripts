@@ -15,6 +15,7 @@ from lib.Config import Config
 from lib.Wikidot import Wikidot
 from lib.Gmail import Gmail
 from lib.AuthorData import AuthorData
+from lib.GoogleSpreadsheetAPI import Spreadsheet
 import re
 import os
 
@@ -35,6 +36,8 @@ spreadsheet = config['googledoc']['spreadsheet']
 worksheet = config['googledoc']['worksheet']
 dryrun = config['googledoc']['dryrun']
 dryrun = True
+
+spr = Spreadsheet(googledoc_user, googledoc_pass, spreadsheet)
 
 gmail = Gmail()
 gmail.login(googledoc_user, googledoc_pass)
@@ -91,7 +94,7 @@ def page_split_by_keyword(text, keyword):
 # Main routine below
 #
 
-user_mapping_pre = fetch_googledoc_spreadsheet(googledoc_user, googledoc_pass, spreadsheet, worksheet)
+user_mapping_pre = spr.getWorksheetCellArray(worksheet)
 ad_obj.user_mapping = convert_spreadsheet_to_userdata(user_mapping_pre)
 
 # 列出要處理的頁面
