@@ -63,8 +63,7 @@ if __name__ == '__main__':
         worksheet = config['googledoc']['worksheet']
 
         spr = Spreadsheet(googledoc_user, googledoc_pass, spreadsheet)
-        work = Spreadsheet.Worksheet(spr, worksheet)
-        result = work.getCellArray()
+        result = spr.getWorksheetCellArray(worksheet)
         for keyword in args.params:
                 result = search_userdata(result, keyword)
 
