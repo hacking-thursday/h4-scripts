@@ -20,6 +20,306 @@ from lib.Facebook import Facebook, Graph
 from lib.GoogleSpreadsheetAPI import Spreadsheet
 
 
+def cmd_search(args):
+    print("搜尋通訊錄", args.params)
+    config = Config()
+    googledoc_user = config['googledoc']['email']
+    googledoc_pass = config['googledoc']['password']
+    spreadsheet = config['googledoc']['spreadsheet']
+    worksheet = config['googledoc']['worksheet']
+
+    spr = Spreadsheet(googledoc_user, googledoc_pass, spreadsheet)
+    result = spr.getWorksheetCellArray(worksheet)
+    for keyword in args.params:
+            result = search_userdata(result, keyword)
+
+    for k in result.keys():
+            row = result[k]
+            print("=" * 60)
+            show_userdata(row)
+
+
+def cmd_invite(args):
+    if args.use_fb:
+        logger = Logger('h4_create_fb_event').__new__()
+
+        config = Config()
+        username = config['facebook']['username']
+        password = config['facebook']['password']
+        facebook_group_id = config['facebook']['group_id']
+
+        this_thursday = common.getThursday(0)
+        title = 'HackingThursday固定聚會(%s)' % this_thursday
+        description = "地點：伯朗咖啡 (建國店)\n地址：台北市大安區建國南路一段 166 號\n(捷運忠孝新生站三號出口，沿忠孝東路走至建國南路右轉)\n\nWhat you can do in H4 :\n1. Code your code.\n2. Talk about OS, Programming, Hacking skills, Gossiping ...\n3. Meet new friends ~\n4. Hack and share anything !\n\nSee details :\nhttp://www.hackingthursday.org/\n\nWeekly Share :\nhttp://sync.in/h4"
+        start_time = '%sT07:30:00-0400' % this_thursday
+        end_time = '%sT10:00:00-0400' % this_thursday
+
+        def check_token():
+            graph = Graph(config['facebook']['access_token'])
+
+            if graph.getUID():
+                logger.info('valid token')
+                return config['facebook']['access_token']
+            else:
+                logger.info('invalid token, try get new one')
+                fb = Facebook()
+                if fb.login(username, password):
+                    logger.info('login success')
+                    token = fb.get_token()
+                    if token:
+                        logger.info('get new token')
+                        config.Set('facebook', 'access_token', token)
+                        return token
+                    else:
+                        logger.error('get token failed')
+                else:
+                    logger.info('login failed')
+
+            return False
+
+        token = check_token()
+        if token:
+            graph = Graph(token)
+
+            if args.dryrun is not True:
+                event_id = graph.createEvent(facebook_group_id, title, description, start_time, end_time)
+                if event_id:
+                    logger.info('http://www.facebook.com/events/' + event_id)
+                else:
+                    logger.error('event create error')
+            else:
+                print("dryrun 模式，未貼文")
+
+    if args.use_ptt:
+        logger = Logger('h4_invitation_notifier_ptt').__new__()
+
+        config = Config()
+        ID = config['bbs']['user']
+        PASSWORD = config['bbs']['pass']
+        PartyDate = common.getThursday(0)
+
+        board = 'Linux'
+        subject = 'HackingThursday 固定聚會 (%s)' % PartyDate
+        content = common.html2txt(common.get_wikidot_content_body('http://www.hackingthursday.org/invite'))
+
+        ptt = PTT()
+
+        if ptt.login(ID, PASSWORD):
+            logger.info('login ptt')
+
+        if ptt.enter(board):
+            logger.info('enter %s board' % board)
+
+        if args.dryrun is not True:
+            if ptt.post(subject, content):
+                logger.info('post article')
+        else:
+            print("dryrun 模式，未貼文")
+
+        if ptt.quit():
+            logger.info('quit ptt')
+
+    if args.use_email:
+        PartyDate = common.getThursday(0)
+
+        config = Config()
+        username = config['gmail']['username']
+        password = config['gmail']['password']
+        Sender = config['hackingthursday']['who']  # 值日生的 email
+        Reciver = config['hackingthursday']['email_address']
+        Subject = "HackingThursday 固定聚會 (%s)" % PartyDate
+
+        # 這裡改從網頁上將通告內文抓下來，以後改用網頁來更新通告。
+        Html = common.get_wikidot_content_body("http://www.hackingthursday.org/invite")
+        Txt = common.html2txt(Html)
+
+        gmail = Gmail()
+        gmail.login(username, password)
+        if args.dryrun is not True:
+            gmail.send(Sender, Reciver, Subject, Txt, Html)
+        else:
+            print("dryrun 模式，未寄出")
+
+
+def cmd_notify(args):
+    if args.use_wiki:
+        PartyDate = common.getThursday(0)
+
+        config = Config()
+        username = config['gmail']['username']
+        password = config['gmail']['password']
+        Sender = config['hackingthursday']['who']  # 值日生的 email
+        # Receiver = config['hackingthursday']['email_address']
+        Receiver = config['hackingthursday']['who']  # 值日生的 email
+        Subject = "HackingThursday 聚會手記 (%s)" % PartyDate
+
+        WikidotNoteURL = "http://www.hackingthursday.org/" + PartyDate
+        MailContentHeader = common.mail_content_header
+        MailContentFooter = common.mail_content_footer
+
+        Html = """
+        <html>
+            <head>
+                <title>HackingThursday</title>
+            </head>
+            <body>
+            <pre>""" + MailContentHeader + """</pre>
+            """ + WikidotNoteURL + """
+            <pre>""" + MailContentFooter + """</pre>
+            </body>
+        </html>
+        """
+
+        Txt = common.html2txt(Html)
+
+        gmail = Gmail()
+        gmail.login(username, password)
+        if args.dryrun is not True:
+            gmail.send(Sender, Receiver, Subject, Txt, Html)
+        else:
+            print("dryrun 模式，未寄出")
+
+
+def cmd_wikidot(args):
+    if args.do_index:
+        config = Config()
+        api_user = config['wikidot']['wikidot_api_user']
+        api_key = config['wikidot']['wikidot_api_key']
+        site = 'hackingthursday'
+
+        wikidot = Wikidot()
+        wikidot.auth(api_user, api_key)
+        wikidot.set_site(site)
+
+        selecte_pages = []
+        collection = []
+        metadatas = []
+
+        mask_pages = [
+            'faq',
+            'funding',
+            'invite',
+            'photoandvideo',
+            'routine',
+            'sandbox',
+            'start',
+        ]
+
+        all_pages = wikidot.list_pages()
+        for page in all_pages:
+                prefix = ""
+                if page.split(':').__len__() > 1:
+                        prefix = page.split(':')[0]
+
+                if page[0:2] == "20" and page[4] == "-" and page[7] == "-":
+                        pass
+                elif prefix != "":
+                        pass
+                else:
+                        isInMask = False
+                        if page in mask_pages:
+                                isInMask = True
+                        if not isInMask:
+                                selecte_pages += [page]
+
+        # 依更新日期作排序，最新的擺前面
+        for i in range(0, selecte_pages.__len__(), 10):
+                if i + 10 <= selecte_pages.__len__():
+                        metadatas += wikidot.get_pages_meta(selecte_pages[i:i + 10]).items()
+                else:
+                        metadatas += wikidot.get_pages_meta(selecte_pages[i:selecte_pages.__len__()]).items()
+
+        metadatas.sort(key=lambda x: x[1].get('updated_at'), reverse=True)
+        selecte_pages = []
+        print(metadatas)
+        for item in metadatas:
+                selecte_pages.append(item[0])
+
+        # 開始產生選單
+        page_of_index = ""
+        for page in selecte_pages:
+                print("處理頁面: ", page)
+                metadata = wikidot.get_pages_meta([page])
+                fullname = metadata.get(page).get('fullname').encode('utf8')
+                title = metadata.get(page).get('title').encode('utf8')
+                page_of_index += " * [[[%s|%s]]]\n" % (fullname, title)
+
+        # 將新列表塞到主選單中
+        nav_page = "nav:top"
+        keyword_beg = "\n* [# Wiki]\n"
+        keyword_end = "[!--Wiki--]"
+
+        nav_top_page = wikidot.get_page(nav_page)
+        nav_top_content = nav_top_page["content"].encode('utf8')
+
+        new_nav_top_content = find_keyword_and_insert_content(nav_top_content, keyword_beg, keyword_end, page_of_index)
+
+        print(new_nav_top_content)
+        if args.dryrun is not True:
+            wikidot.save_page(nav_page, content=new_nav_top_content)
+        else:
+            print("dryrun 模式，未寫入")
+
+    if args.do_newpage:
+        config = Config()
+        user_app = config['wikidot']['wikidot_api_user']
+        key = config['wikidot']['wikidot_api_key']
+
+        tomorrow = getThursday(0)
+        lastweek = getThursday(-1)
+        nextweek = getThursday(1)
+        site = 'hackingthursday'
+        page = tomorrow
+        title = tomorrow + ' 聚會手記'
+        content = '''
+        [[[ %s |上一週]]] || [[[ %s |下一週]]]
+
+        [[toc]]
+
+        [[html]]
+        <iframe src='http://pad.hackingthursday.org?showControls=true&showChat=true&showLineNumbers=true&useMonospaceFont=false' width=675 height=400></iframe>
+        [[/html]]
+        ''' % (lastweek, nextweek)
+
+        wikidot = Wikidot()
+        wikidot.auth(user_app, key)
+        wikidot.set_site(site)
+
+        # 如果頁面不存在，則建立當週筆記頁
+        if not wikidot.get_page(page):
+            if args.dryrun is not True:
+                if wikidot.save_page(page, title, content):
+                    print(('To view : http://%s.wikidot.com/%s' % (site, page)))
+            else:
+                print("dryrun 模式，未寫入")
+        else:
+            print("已經有筆記頁面了")
+
+        # 更新上方選單項目
+        top_bar_page = "nav:top"
+        top_bar_title = 'Top Bar Menu'
+        target_keyword = u"* [# 聚會手記]\n"
+        note_page_link = u" * [[[" + tomorrow + "]]]\n"
+
+        nav_top_page = wikidot.get_page(top_bar_page)
+        nav_top_content = nav_top_page["content"]
+
+        foundReturn = nav_top_content.find(tomorrow)
+        if foundReturn < 0:
+            new_nav_top_content = find_keyword_and_insert_content(nav_top_content, target_keyword, None, note_page_link)
+
+            if args.dryrun is not True:
+                if wikidot.save_page(top_bar_page, top_bar_title, new_nav_top_content):
+                    print('To view : http://%s.wikidot.com/%s' % (site, top_bar_page))
+            else:
+                print("dryrun 模式，未寫入")
+        else:
+            print("頁面已經有對應的選單項目了")
+
+    if args.do_rebuild:
+        print("更新 wiki 個人頁面")  # 用來取代 h4_wikidot_rebuild
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest='subcmd')
@@ -27,328 +327,38 @@ if __name__ == '__main__':
     # 通用選項
     parser.add_argument('-n', '--dry-run', help='跳過會寫入的動作', dest='dryrun', action='store_true')
     parser.add_argument('-v', '--verbose', help='顯示更詳細的訊息', dest='verbose', action='store_true')
+    parser.add_argument('-d', '--debug', help='打開除錯訊息', dest='debug', action='store_true')
 
     # sub command for "search"
     parser_sub = subparsers.add_parser('search', help='搜尋線上通訊錄')
     parser_sub.add_argument('params', nargs='*', help='search keyword')
+    parser_sub.set_defaults(func=cmd_search)
 
     # sub command for "notify"
     parser_sub = subparsers.add_parser('notify', help='內容更新通知')
     parser_sub.add_argument('--wiki', help='使用 wiki', dest='use_wiki', action='store_true')
+    parser_sub.set_defaults(func=cmd_notify)
 
     # sub command for "invite"
     parser_sub = subparsers.add_parser('invite', help='發送聚會通告')
     parser_sub.add_argument('--fb', help='使用 facebook', dest='use_fb', action='store_true')
     parser_sub.add_argument('--ptt', help='使用 ptt', dest='use_ptt', action='store_true')
     parser_sub.add_argument('--email', help='使用 email', dest='use_email', action='store_true')
+    parser_sub.set_defaults(func=cmd_invite)
 
     # sub command for "wikidot"
     parser_sub = subparsers.add_parser('wikidot', help='wikidot操作')
     parser_sub.add_argument('--do-index', help='更新編目', dest='do_index', action='store_true')
     parser_sub.add_argument('--do-newpage', help='新增當週頁面', dest='do_newpage', action='store_true')
     parser_sub.add_argument('--do-rebuild', help='更新作者頁面from聚會手記', dest='do_rebuild', action='store_true')
+    parser_sub.set_defaults(func=cmd_wikidot)
 
     args = parser.parse_args()
     #print args; exit()
+    if args.debug:
+        print(args)
 
-    if args.subcmd is None:
-        parser.print_help()
-
-    elif args.subcmd == "search":
-        print("搜尋通訊錄", args.params)
-        config = Config()
-        googledoc_user = config['googledoc']['email']
-        googledoc_pass = config['googledoc']['password']
-        spreadsheet = config['googledoc']['spreadsheet']
-        worksheet = config['googledoc']['worksheet']
-
-        spr = Spreadsheet(googledoc_user, googledoc_pass, spreadsheet)
-        result = spr.getWorksheetCellArray(worksheet)
-        for keyword in args.params:
-                result = search_userdata(result, keyword)
-
-        for k in result.keys():
-                row = result[k]
-                print("=" * 60)
-                show_userdata(row)
-
-    elif args.subcmd == "invite":
-        if args.use_fb:
-            logger = Logger('h4_create_fb_event').__new__()
-
-            config = Config()
-            username = config['facebook']['username']
-            password = config['facebook']['password']
-            facebook_group_id = config['facebook']['group_id']
-
-            this_thursday = common.getThursday(0)
-            title = 'HackingThursday固定聚會(%s)' % this_thursday
-            description = "地點：伯朗咖啡 (建國店)\n地址：台北市大安區建國南路一段 166 號\n(捷運忠孝新生站三號出口，沿忠孝東路走至建國南路右轉)\n\nWhat you can do in H4 :\n1. Code your code.\n2. Talk about OS, Programming, Hacking skills, Gossiping ...\n3. Meet new friends ~\n4. Hack and share anything !\n\nSee details :\nhttp://www.hackingthursday.org/\n\nWeekly Share :\nhttp://sync.in/h4"
-            start_time = '%sT07:30:00-0400' % this_thursday
-            end_time = '%sT10:00:00-0400' % this_thursday
-
-            def check_token():
-                graph = Graph(config['facebook']['access_token'])
-
-                if graph.getUID():
-                    logger.info('valid token')
-                    return config['facebook']['access_token']
-                else:
-                    logger.info('invalid token, try get new one')
-                    fb = Facebook()
-                    if fb.login(username, password):
-                        logger.info('login success')
-                        token = fb.get_token()
-                        if token:
-                            logger.info('get new token')
-                            config.Set('facebook', 'access_token', token)
-                            return token
-                        else:
-                            logger.error('get token failed')
-                    else:
-                        logger.info('login failed')
-
-                return False
-
-            token = check_token()
-            if token:
-                graph = Graph(token)
-
-                if args.dryrun is not True:
-                    event_id = graph.createEvent(facebook_group_id, title, description, start_time, end_time)
-                    if event_id:
-                        logger.info('http://www.facebook.com/events/' + event_id)
-                    else:
-                        logger.error('event create error')
-                else:
-                    print("dryrun 模式，未貼文")
-
-        if args.use_ptt:
-            logger = Logger('h4_invitation_notifier_ptt').__new__()
-
-            config = Config()
-            ID = config['bbs']['user']
-            PASSWORD = config['bbs']['pass']
-            PartyDate = common.getThursday(0)
-
-            board = 'Linux'
-            subject = 'HackingThursday 固定聚會 (%s)' % PartyDate
-            content = common.html2txt(common.get_wikidot_content_body('http://www.hackingthursday.org/invite'))
-
-            ptt = PTT()
-
-            if ptt.login(ID, PASSWORD):
-                logger.info('login ptt')
-
-            if ptt.enter(board):
-                logger.info('enter %s board' % board)
-
-            if args.dryrun is not True:
-                if ptt.post(subject, content):
-                    logger.info('post article')
-            else:
-                print("dryrun 模式，未貼文")
-
-            if ptt.quit():
-                logger.info('quit ptt')
-
-        if args.use_email:
-            PartyDate = common.getThursday(0)
-
-            config = Config()
-            username = config['gmail']['username']
-            password = config['gmail']['password']
-            Sender = config['hackingthursday']['who']  # 值日生的 email
-            Reciver = config['hackingthursday']['email_address']
-            Subject = "HackingThursday 固定聚會 (%s)" % PartyDate
-
-            # 這裡改從網頁上將通告內文抓下來，以後改用網頁來更新通告。
-            Html = common.get_wikidot_content_body("http://www.hackingthursday.org/invite")
-            Txt = common.html2txt(Html)
-
-            gmail = Gmail()
-            gmail.login(username, password)
-            if args.dryrun is not True:
-                gmail.send(Sender, Reciver, Subject, Txt, Html)
-            else:
-                print("dryrun 模式，未寄出")
-
-    elif args.subcmd == "notify":
-        if args.use_wiki:
-            PartyDate = common.getThursday(0)
-
-            config = Config()
-            username = config['gmail']['username']
-            password = config['gmail']['password']
-            Sender = config['hackingthursday']['who']  # 值日生的 email
-            # Receiver = config['hackingthursday']['email_address']
-            Receiver = config['hackingthursday']['who']  # 值日生的 email
-            Subject = "HackingThursday 聚會手記 (%s)" % PartyDate
-
-            WikidotNoteURL = "http://www.hackingthursday.org/" + PartyDate
-            MailContentHeader = common.mail_content_header
-            MailContentFooter = common.mail_content_footer
-
-            Html = """
-            <html>
-                <head>
-                    <title>HackingThursday</title>
-                </head>
-                <body>
-                <pre>""" + MailContentHeader + """</pre>
-                """ + WikidotNoteURL + """
-                <pre>""" + MailContentFooter + """</pre>
-                </body>
-            </html>
-            """
-
-            Txt = common.html2txt(Html)
-
-            gmail = Gmail()
-            gmail.login(username, password)
-            if args.dryrun is not True:
-                gmail.send(Sender, Receiver, Subject, Txt, Html)
-            else:
-                print("dryrun 模式，未寄出")
-
-    elif args.subcmd == "wikidot":
-        if args.do_index:
-            config = Config()
-            api_user = config['wikidot']['wikidot_api_user']
-            api_key = config['wikidot']['wikidot_api_key']
-            site = 'hackingthursday'
-
-            wikidot = Wikidot()
-            wikidot.auth(api_user, api_key)
-            wikidot.set_site(site)
-
-            selecte_pages = []
-            collection = []
-            metadatas = []
-
-            mask_pages = [
-                'faq',
-                'funding',
-                'invite',
-                'photoandvideo',
-                'routine',
-                'sandbox',
-                'start',
-            ]
-
-            all_pages = wikidot.list_pages()
-            for page in all_pages:
-                    prefix = ""
-                    if page.split(':').__len__() > 1:
-                            prefix = page.split(':')[0]
-
-                    if page[0:2] == "20" and page[4] == "-" and page[7] == "-":
-                            pass
-                    elif prefix != "":
-                            pass
-                    else:
-                            isInMask = False
-                            if page in mask_pages:
-                                    isInMask = True
-                            if not isInMask:
-                                    selecte_pages += [page]
-
-            # 依更新日期作排序，最新的擺前面
-            for i in range(0, selecte_pages.__len__(), 10):
-                    if i + 10 <= selecte_pages.__len__():
-                            metadatas += wikidot.get_pages_meta(selecte_pages[i:i + 10]).items()
-                    else:
-                            metadatas += wikidot.get_pages_meta(selecte_pages[i:selecte_pages.__len__()]).items()
-
-            metadatas.sort(key=lambda x: x[1].get('updated_at'), reverse=True)
-            selecte_pages = []
-            print(metadatas)
-            for item in metadatas:
-                    selecte_pages.append(item[0])
-
-            # 開始產生選單
-            page_of_index = ""
-            for page in selecte_pages:
-                    print("處理頁面: ", page)
-                    metadata = wikidot.get_pages_meta([page])
-                    fullname = metadata.get(page).get('fullname').encode('utf8')
-                    title = metadata.get(page).get('title').encode('utf8')
-                    page_of_index += " * [[[%s|%s]]]\n" % (fullname, title)
-
-            # 將新列表塞到主選單中
-            nav_page = "nav:top"
-            keyword_beg = "\n* [# Wiki]\n"
-            keyword_end = "[!--Wiki--]"
-
-            nav_top_page = wikidot.get_page(nav_page)
-            nav_top_content = nav_top_page["content"].encode('utf8')
-
-            new_nav_top_content = find_keyword_and_insert_content(nav_top_content, keyword_beg, keyword_end, page_of_index)
-
-            print(new_nav_top_content)
-            if args.dryrun is not True:
-                wikidot.save_page(nav_page, content=new_nav_top_content)
-            else:
-                print("dryrun 模式，未寫入")
-
-        if args.do_newpage:
-            config = Config()
-            user_app = config['wikidot']['wikidot_api_user']
-            key = config['wikidot']['wikidot_api_key']
-
-            tomorrow = getThursday(0)
-            lastweek = getThursday(-1)
-            nextweek = getThursday(1)
-            site = 'hackingthursday'
-            page = tomorrow
-            title = tomorrow + ' 聚會手記'
-            content = '''
-            [[[ %s |上一週]]] || [[[ %s |下一週]]]
-
-            [[toc]]
-
-            [[html]]
-            <iframe src='http://pad.hackingthursday.org?showControls=true&showChat=true&showLineNumbers=true&useMonospaceFont=false' width=675 height=400></iframe>
-            [[/html]]
-            ''' % (lastweek, nextweek)
-
-            wikidot = Wikidot()
-            wikidot.auth(user_app, key)
-            wikidot.set_site(site)
-
-            # 如果頁面不存在，則建立當週筆記頁
-            if not wikidot.get_page(page):
-                if args.dryrun is not True:
-                    if wikidot.save_page(page, title, content):
-                        print(('To view : http://%s.wikidot.com/%s' % (site, page)))
-                else:
-                    print("dryrun 模式，未寫入")
-            else:
-                print("已經有筆記頁面了")
-
-            # 更新上方選單項目
-            top_bar_page = "nav:top"
-            top_bar_title = 'Top Bar Menu'
-            target_keyword = u"* [# 聚會手記]\n"
-            note_page_link = u" * [[[" + tomorrow + "]]]\n"
-
-            nav_top_page = wikidot.get_page(top_bar_page)
-            nav_top_content = nav_top_page["content"]
-
-            foundReturn = nav_top_content.find(tomorrow)
-            if foundReturn < 0:
-                new_nav_top_content = find_keyword_and_insert_content(nav_top_content, target_keyword, None, note_page_link)
-
-                if args.dryrun is not True:
-                    if wikidot.save_page(top_bar_page, top_bar_title, new_nav_top_content):
-                        print('To view : http://%s.wikidot.com/%s' % (site, top_bar_page))
-                else:
-                    print("dryrun 模式，未寫入")
-            else:
-                print("頁面已經有對應的選單項目了")
-
-        if args.do_rebuild:
-            print("更新 wiki 個人頁面")  # 用來取代 h4_wikidot_rebuild
-
+    if args.__contains__("func"):
+        args.func(args)
     else:
-        pass
+        parser.print_help()
