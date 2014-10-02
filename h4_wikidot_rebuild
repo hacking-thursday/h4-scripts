@@ -16,8 +16,6 @@ from lib.Wikidot import Wikidot
 from lib.Gmail import Gmail
 from lib.AuthorData import AuthorData
 from lib.GoogleSpreadsheetAPI import Spreadsheet
-import re
-import os
 
 #
 # 程式參數
@@ -45,51 +43,6 @@ gmail.login(googledoc_user, googledoc_pass)
 ad_obj = AuthorData()
 
 
-def partition_page(page):
-    content = wikidot.get_page_content(page)
-    headings = wikidot.list_headings(page)
-
-    pos_ary = []
-    parts = []
-    content_rows = content.split("\n")
-
-    for i in range(0, content_rows.__len__()):
-        line = content_rows[i]
-        #print(i,": ", line)
-        result = re.findall('^\+ (.*)\s*$', line)
-        if result.__len__() > 0:
-            heading = result[0]
-            if heading in headings:
-                pos_ary += [(heading, i)]
-
-    for i in range(0, pos_ary.__len__()):
-        data = []
-        if i + 1 == pos_ary.__len__():  # 最後一個
-            for j in range(pos_ary[i][1] + 1, content_rows.__len__()):
-                data += [content_rows[j]]
-        else:
-            for j in range(pos_ary[i][1] + 1, pos_ary[i + 1][1]):
-                data += [content_rows[j]]
-
-        heading = pos_ary[i][0]
-        parts += [(heading, data)]
-
-    return parts
-
-
-def page_split_by_keyword(text, keyword):
-        pos = text.rfind(keyword)
-
-        if pos >= 0:
-            head = text[:pos]
-            body = text[pos:]
-        else:
-            head = text
-            body = ""
-
-        return head, body
-
-
 #
 # Main routine below
 #
@@ -106,7 +59,7 @@ date_pages.sort(reverse=True)  # 將最新日期放在最前面
 for page in date_pages:
     print("處理頁面: ", page)
     # workaround
-    parts = partition_page(page)
+    parts = wikidot.partition_page(page)
     ad_obj.parse_data_from_page(page, parts)
 
 #
@@ -223,62 +176,6 @@ new_nav_top_content = find_keyword_and_insert_content(nav_top_content, keyword_b
 if dryrun is not True:
     wikidot.save_page(nav_page, content=new_nav_top_content)
 
-
-def send_notify_mail(author):
-    global ad_obj
-    author_data = ad_obj.find_author_by_name(author)
-    rel_name = author_data['rel_name']
-    url_name = author_data['url_name']
-    email = author_data['email']
-
-    Sender = googledoc_user  # 值日生的 email
-    Reciver = email
-    Subject = "H4個人頁面更新通知"
-    Link = "%s/user:%s" % (root_url, url_name)
-
-    Html = """
-<html>
-    <head>
-        <title>%s</title>
-    </head>
-    <body>
-    <a href="%s">%s</a>
-    <pre>
-Hi %s 您好:
-
-關於您在 H4 的個人手記有新的
-內容嘍~(網址如上) 歡迎您有空
-再來 H4 逛逛~!
-
-備註:
-這是 H4 值日生們新推出的小功
-能，bot 會將大家的筆記，依個
-別作排序跟整理在 wiki 上。
-
-%s
-
-備註2:
-個人頁面 "Table of Contents"
-以上的部份是可以編輯的。歡迎
-您編輯個人相關資訊及連結!!
-( Table of Contents 以下的部
-份則是會由 bot 定期產生並覆
-蓋 )
-
-若您有任何問題或是建議，都歡
-迎 feedback 給我們，謝謝!!
-    </pre>
-    </body>
-</html>
-""" % (Subject, Link, Link, rel_name, root_url + "h4note")
-
-    Txt = common.html2txt(Html)
-
-    receivers = Reciver.split(',')
-    for item in receivers:
-        receiver = item.strip()
-        gmail.send(Sender, receiver, Subject, Txt, Html)
-
 #
 # 通知作者有頁面更新
 #
@@ -297,7 +194,7 @@ for author in ad_obj.collection3:
     if notify_enable:
             print('To nofity: "%s" <%s> , %s/user:%s ' % (rel_name, email, root_url, url_name))
             if dryrun is not True:
-                send_notify_mail(author)
+                send_notify_mail(author, ad_obj, googledoc_user, root_url)
     else:
             print('  skiping: "%s" <%s> , %s/user:%s ' % (rel_name, email, root_url, url_name))
 
