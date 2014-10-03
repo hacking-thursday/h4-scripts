@@ -218,3 +218,72 @@ def get_diff_output_between_two_string(orig, after):
     os.unlink(tmp_new)
 
     return out
+
+
+def page_split_by_keyword(text, keyword):
+        pos = text.rfind(keyword)
+
+        if pos >= 0:
+            head = text[:pos]
+            body = text[pos:]
+        else:
+            head = text
+            body = ""
+
+        return head, body
+
+
+def send_notify_mail(author, author_data_obj, sender, root_url):
+    ad_obj = author_data_obj
+    author_data = ad_obj.find_author_by_name(author)
+    rel_name = author_data['rel_name']
+    url_name = author_data['url_name']
+    email = author_data['email']
+
+    Sender = sender  # 值日生的 email
+    Reciver = email
+    Subject = "H4個人頁面更新通知"
+    Link = "%s/user:%s" % (root_url, url_name)
+
+    Html = """
+<html>
+    <head>
+        <title>%s</title>
+    </head>
+    <body>
+    <a href="%s">%s</a>
+    <pre>
+Hi %s 您好:
+
+關於您在 H4 的個人手記有新的
+內容嘍~(網址如上) 歡迎您有空
+再來 H4 逛逛~!
+
+備註:
+這是 H4 值日生們新推出的小功
+能，bot 會將大家的筆記，依個
+別作排序跟整理在 wiki 上。
+
+%s
+
+備註2:
+個人頁面 "Table of Contents"
+以上的部份是可以編輯的。歡迎
+您編輯個人相關資訊及連結!!
+( Table of Contents 以下的部
+份則是會由 bot 定期產生並覆
+蓋 )
+
+若您有任何問題或是建議，都歡
+迎 feedback 給我們，謝謝!!
+    </pre>
+    </body>
+</html>
+""" % (Subject, Link, Link, rel_name, root_url + "h4note")
+
+    Txt = html2txt(Html)
+
+    receivers = Reciver.split(',')
+    for item in receivers:
+        receiver = item.strip()
+        gmail.send(Sender, receiver, Subject, Txt, Html)

@@ -3,6 +3,7 @@
 
 import os
 import subprocess
+import re
 import xmlrpclib
 from xmlrpclib import ServerProxy
 
@@ -180,3 +181,34 @@ class Wikidot():
             result = php_parse_wikidot_heading(p_path)
 
         return result
+
+    def partition_page(self, page):
+        content = self.get_page_content(page)
+        headings = self.list_headings(page)
+
+        pos_ary = []
+        parts = []
+        content_rows = content.split("\n")
+
+        for i in range(0, content_rows.__len__()):
+            line = content_rows[i]
+            #print(i,": ", line)
+            result = re.findall('^\+ (.*)\s*$', line)
+            if result.__len__() > 0:
+                heading = result[0]
+                if heading in headings:
+                    pos_ary += [(heading, i)]
+
+        for i in range(0, pos_ary.__len__()):
+            data = []
+            if i + 1 == pos_ary.__len__():  # 最後一個
+                for j in range(pos_ary[i][1] + 1, content_rows.__len__()):
+                    data += [content_rows[j]]
+            else:
+                for j in range(pos_ary[i][1] + 1, pos_ary[i + 1][1]):
+                    data += [content_rows[j]]
+
+            heading = pos_ary[i][0]
+            parts += [(heading, data)]
+
+        return parts
