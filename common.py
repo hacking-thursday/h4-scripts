@@ -8,23 +8,16 @@
 
 from __future__ import print_function
 
-import datetime
-
-import smtplib
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEText import MIMEText
-from email.Header import Header
-
-import os
 import ConfigParser
+import datetime
+import os
+import re
+import subprocess
+import sys
+import tempfile
 
 from BeautifulSoup import BeautifulSoup
 
-import tempfile
-import subprocess
-
-import re
-import sys
 
 root_path = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(os.path.join(root_path, '3rd'))
@@ -68,29 +61,6 @@ def chkThursday(date_str):
     else:
         res = False
     return res
-
-
-#
-# send_gmail("matlinuxer2@gmail.com", "matlinuxer2@gmail.com", "Hello from python!", "<hr/><h1>hello from python</h1><hr/>", "USERNAME", "PASSWORD")
-#
-def send_gmail(sender, recipient, subject, text, html, username, passwd):
-    msg = MIMEMultipart("alternative")
-
-    msg['Subject'] = Header(subject, "utf-8")
-    msg['From'] = sender
-    msg['To'] = recipient
-
-    msg.attach(MIMEText(text, "plain", "utf-8"))
-    msg.attach(MIMEText(html, "html", "utf-8"))
-
-    mailServer = smtplib.SMTP("smtp.gmail.com", 587)
-    mailServer.ehlo()
-    mailServer.starttls()
-    mailServer.ehlo()
-    mailServer.login(username, passwd)
-    mailServer.sendmail(sender, recipient, msg.as_string())
-    # Should be mailServer.quit(), but that crashes...
-    mailServer.close()
 
 
 ##################
