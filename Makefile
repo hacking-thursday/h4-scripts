@@ -23,14 +23,14 @@ clean: # 清除執行期的暫存檔
 	find . -type f -name '*.pyc' -print0 | xargs -0 rm -v
 
 chkpy3: # 檢查 python3 語法
-	for ff in `find ./ lib/ -maxdepth 1 -type f | xargs file | grep 'Python script' | cut -d: -f1`; \
+	for ff in `find ./ lib/ -maxdepth 1 -type f -name '*.py' | xargs file | grep 'Python script' | cut -d: -f1`; \
 	do \
 		echo "====== $$ff ======"; \
 		python3 -m py_compile $$ff ;\
 	done
 
 chkpy2: # 檢查 python2 語法
-	for ff in `find ./ lib/ -maxdepth 1 -type f | xargs file | grep 'Python script' | cut -d: -f1`; \
+	for ff in `find ./ lib/ -maxdepth 1 -type f -name '*.py' | xargs file | grep 'Python script' | cut -d: -f1`; \
 	do \
 		echo "====== $$ff ======"; \
 		python2 -m py_compile $$ff ;\

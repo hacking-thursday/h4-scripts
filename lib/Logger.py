@@ -1,10 +1,6 @@
 import os
 import sys
-root_path = os.path.abspath(os.path.dirname(__file__))
-sys.path.append(os.path.join(root_path, '3rd'))
-
 import logging
-# from cloghandler import ConcurrentRotatingFileHandler
 
 LOGFILE = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'h4.log')
 

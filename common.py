@@ -16,14 +16,8 @@ import subprocess
 import sys
 import tempfile
 
-from BeautifulSoup import BeautifulSoup
-
-
-root_path = os.path.abspath(os.path.dirname(__file__))
-sys.path.append(os.path.join(root_path, '3rd'))
-sys.path.append(os.path.join(root_path, '3rd', 'gdata-python-client', 'src'))
-
-import html2text  # pip version decode error, using 3rd-party instead
+from bs4 import BeautifulSoup
+import html2text
 
 
 # idx == 0 => 這一週的星期四
