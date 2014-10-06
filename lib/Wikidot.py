@@ -32,6 +32,8 @@ def file2string(path):
 
 
 class Wikidot():
+    site = None
+
     def auth(self, user, key):
         try:
             self.proxy = ServerProxy('https://' + user + ':' + key + '@' + EP_URL)

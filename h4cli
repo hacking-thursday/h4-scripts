@@ -22,7 +22,7 @@ from lib.AuthorData import AuthorData
 
 
 def cmd_search(args):
-    global config, logger
+    global config, logger, gmail, wikidot, root_url
 
     print("搜尋通訊錄", args.params)
     googledoc_user = config.Get('googledoc', 'email')
@@ -42,18 +42,22 @@ def cmd_search(args):
 
 
 def cmd_invite(args):
-    global config, logger
+    global config, logger, gmail, wikidot, root_url
+
+    # 這裡改從網頁上將通告內文抓下來，以後改用網頁來更新通告。
+    Html = common.get_wikidot_content_body("http://www.hackingthursday.org/invite")
+    Txt = common.html2txt(Html)
+    this_thursday = common.getThursday(0)
+    PartyDate = common.getThursday(0)
+    subject = 'HackingThursday 固定聚會 (%s)' % this_thursday
+    description = "地點：伯朗咖啡 (建國店)\n地址：台北市大安區建國南路一段 166 號\n(捷運忠孝新生站三號出口，沿忠孝東路走至建國南路右轉)\n\nWhat you can do in H4 :\n1. Code your code.\n2. Talk about OS, Programming, Hacking skills, Gossiping ...\n3. Meet new friends ~\n4. Hack and share anything !\n\nSee details :\nhttp://www.hackingthursday.org/\n\nWeekly Share :\nhttp://sync.in/h4"
+    start_time = '%sT07:30:00-0400' % this_thursday
+    end_time = '%sT10:00:00-0400' % this_thursday
 
     if args.use_fb:
         username = config.Get('facebook', 'username')
         password = config.Get('facebook', 'password')
         facebook_group_id = config.Get('facebook', 'group_id')
-
-        this_thursday = common.getThursday(0)
-        title = 'HackingThursday固定聚會(%s)' % this_thursday
-        description = "地點：伯朗咖啡 (建國店)\n地址：台北市大安區建國南路一段 166 號\n(捷運忠孝新生站三號出口，沿忠孝東路走至建國南路右轉)\n\nWhat you can do in H4 :\n1. Code your code.\n2. Talk about OS, Programming, Hacking skills, Gossiping ...\n3. Meet new friends ~\n4. Hack and share anything !\n\nSee details :\nhttp://www.hackingthursday.org/\n\nWeekly Share :\nhttp://sync.in/h4"
-        start_time = '%sT07:30:00-0400' % this_thursday
-        end_time = '%sT10:00:00-0400' % this_thursday
 
         def check_token():
             graph = Graph(config.Get('facebook', 'access_token'))
@@ -83,7 +87,7 @@ def cmd_invite(args):
             graph = Graph(token)
 
             if args.dryrun is not True:
-                event_id = graph.createEvent(facebook_group_id, title, description, start_time, end_time)
+                event_id = graph.createEvent(facebook_group_id, subject, description, start_time, end_time)
                 if event_id:
                     logger.info('http://www.facebook.com/events/' + event_id)
                 else:
@@ -94,11 +98,7 @@ def cmd_invite(args):
     if args.use_ptt:
         ID = config.Get('bbs', 'user')
         PASSWORD = config.Get('bbs', 'pass')
-        PartyDate = common.getThursday(0)
-
         board = 'Linux'
-        subject = 'HackingThursday 固定聚會 (%s)' % PartyDate
-        content = common.html2txt(common.get_wikidot_content_body('http://www.hackingthursday.org/invite'))
 
         ptt = PTT()
 
@@ -109,7 +109,7 @@ def cmd_invite(args):
             logger.info('enter %s board' % board)
 
         if args.dryrun is not True:
-            if ptt.post(subject, content):
+            if ptt.post(subject, TXT):
                 logger.info('post article')
         else:
             print("dryrun 模式，未貼文")
@@ -118,19 +118,11 @@ def cmd_invite(args):
             logger.info('quit ptt')
 
     if args.use_email:
-        PartyDate = common.getThursday(0)
-
         username = config.Get('gmail', 'username')
         password = config.Get('gmail', 'password')
         Sender = config.Get('hackingthursday', 'who')  # 值日生的 email
         Reciver = config.Get('hackingthursday', 'email_address')
-        Subject = "HackingThursday 固定聚會 (%s)" % PartyDate
 
-        # 這裡改從網頁上將通告內文抓下來，以後改用網頁來更新通告。
-        Html = common.get_wikidot_content_body("http://www.hackingthursday.org/invite")
-        Txt = common.html2txt(Html)
-
-        gmail = Gmail()
         gmail.login(username, password)
         if args.dryrun is not True:
             gmail.send(Sender, Reciver, Subject, Txt, Html)
@@ -139,7 +131,7 @@ def cmd_invite(args):
 
 
 def cmd_notify(args):
-    global config, logger
+    global config, logger, gmail, wikidot, root_url
 
     if args.use_wiki:
         PartyDate = common.getThursday(0)
@@ -170,7 +162,6 @@ def cmd_notify(args):
 
         Txt = common.html2txt(Html)
 
-        gmail = Gmail()
         gmail.login(username, password)
         if args.dryrun is not True:
             gmail.send(Sender, Receiver, Subject, Txt, Html)
@@ -179,16 +170,13 @@ def cmd_notify(args):
 
 
 def cmd_wikidot(args):
-    global config, logger
+    global config, logger, gmail, wikidot, root_url
 
     if args.do_index:
         api_user = config.Get('wikidot', 'wikidot_api_user')
         api_key = config.Get('wikidot', 'wikidot_api_key')
-        site = 'hackingthursday'
 
-        wikidot = Wikidot()
         wikidot.auth(api_user, api_key)
-        wikidot.set_site(site)
 
         selecte_pages = []
         collection = []
@@ -266,7 +254,6 @@ def cmd_wikidot(args):
         tomorrow = getThursday(0)
         lastweek = getThursday(-1)
         nextweek = getThursday(1)
-        site = 'hackingthursday'
         page = tomorrow
         title = tomorrow + ' 聚會手記'
         content = '''
@@ -279,15 +266,13 @@ def cmd_wikidot(args):
         [[/html]]
         ''' % (lastweek, nextweek)
 
-        wikidot = Wikidot()
         wikidot.auth(user_app, key)
-        wikidot.set_site(site)
 
         # 如果頁面不存在，則建立當週筆記頁
         if not wikidot.get_page(page):
             if args.dryrun is not True:
                 if wikidot.save_page(page, title, content):
-                    print(('To view : http://%s.wikidot.com/%s' % (site, page)))
+                    print(('To view : http://%s/%s' % (root_url, page)))
             else:
                 print("dryrun 模式，未寫入")
         else:
@@ -308,7 +293,7 @@ def cmd_wikidot(args):
 
             if args.dryrun is not True:
                 if wikidot.save_page(top_bar_page, top_bar_title, new_nav_top_content):
-                    print('To view : http://%s.wikidot.com/%s' % (site, top_bar_page))
+                    print('To view : http://%s/%s' % (root_url, top_bar_page))
             else:
                 print("dryrun 模式，未寫入")
         else:
@@ -318,21 +303,15 @@ def cmd_wikidot(args):
         print("更新 wiki 個人頁面")  # 用來取代 h4_wikidot_rebuild
         api_user = config.Get('wikidot', 'wikidot_api_user')
         api_key = config.Get('wikidot', 'wikidot_api_key')
-        site = 'hackingthursday'
-        root_url = 'http://www.hackingthursday.org'
-        wikidot = Wikidot()
         wikidot.auth(api_user, api_key)
-        wikidot.set_site(site)
         googledoc_user = config.Get('googledoc', 'email')
         googledoc_pass = config.Get('googledoc', 'password')
         spreadsheet = config.Get('googledoc', 'spreadsheet')
         worksheet = config.Get('googledoc', 'worksheet')
         dryrun = config.Get('googledoc', 'dryrun')
-        dryrun = True
 
         spr = Spreadsheet(googledoc_user, googledoc_pass, spreadsheet)
 
-        gmail = Gmail()
         gmail.login(googledoc_user, googledoc_pass)
 
         ad_obj = AuthorData()
@@ -536,6 +515,10 @@ if __name__ == '__main__':
     if args.__contains__("func"):
         config = Config()
         logger = Logger('h4cli').__new__()
+        gmail = Gmail()
+        wikidot = Wikidot()
+        wikidot.site = 'hackingthursday'
+        root_url = 'http://www.hackingthursday.org'
         args.func(args)
     else:
         parser.print_help()
