@@ -22,8 +22,9 @@ from lib.AuthorData import AuthorData
 
 
 def cmd_search(args):
+    global config, logger
+
     print("搜尋通訊錄", args.params)
-    config = Config()
     googledoc_user = config['googledoc']['email']
     googledoc_pass = config['googledoc']['password']
     spreadsheet = config['googledoc']['spreadsheet']
@@ -41,10 +42,9 @@ def cmd_search(args):
 
 
 def cmd_invite(args):
-    if args.use_fb:
-        logger = Logger('h4_create_fb_event').__new__()
+    global config, logger
 
-        config = Config()
+    if args.use_fb:
         username = config['facebook']['username']
         password = config['facebook']['password']
         facebook_group_id = config['facebook']['group_id']
@@ -92,9 +92,6 @@ def cmd_invite(args):
                 print("dryrun 模式，未貼文")
 
     if args.use_ptt:
-        logger = Logger('h4_invitation_notifier_ptt').__new__()
-
-        config = Config()
         ID = config['bbs']['user']
         PASSWORD = config['bbs']['pass']
         PartyDate = common.getThursday(0)
@@ -123,7 +120,6 @@ def cmd_invite(args):
     if args.use_email:
         PartyDate = common.getThursday(0)
 
-        config = Config()
         username = config['gmail']['username']
         password = config['gmail']['password']
         Sender = config['hackingthursday']['who']  # 值日生的 email
@@ -143,10 +139,11 @@ def cmd_invite(args):
 
 
 def cmd_notify(args):
+    global config, logger
+
     if args.use_wiki:
         PartyDate = common.getThursday(0)
 
-        config = Config()
         username = config['gmail']['username']
         password = config['gmail']['password']
         Sender = config['hackingthursday']['who']  # 值日生的 email
@@ -182,8 +179,9 @@ def cmd_notify(args):
 
 
 def cmd_wikidot(args):
+    global config, logger
+
     if args.do_index:
-        config = Config()
         api_user = config['wikidot']['wikidot_api_user']
         api_key = config['wikidot']['wikidot_api_key']
         site = 'hackingthursday'
@@ -262,7 +260,6 @@ def cmd_wikidot(args):
             print("dryrun 模式，未寫入")
 
     if args.do_newpage:
-        config = Config()
         user_app = config['wikidot']['wikidot_api_user']
         key = config['wikidot']['wikidot_api_key']
 
@@ -319,7 +316,6 @@ def cmd_wikidot(args):
 
     if args.do_rebuild:
         print("更新 wiki 個人頁面")  # 用來取代 h4_wikidot_rebuild
-        config = Config()
         api_user = config['wikidot']['wikidot_api_user']
         api_key = config['wikidot']['wikidot_api_key']
         site = 'hackingthursday'
@@ -538,6 +534,8 @@ if __name__ == '__main__':
         print(args)
 
     if args.__contains__("func"):
+        config = Config()
+        logger = Logger('h4cli').__new__()
         args.func(args)
     else:
         parser.print_help()
