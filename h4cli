@@ -25,10 +25,10 @@ def cmd_search(args):
     global config, logger
 
     print("搜尋通訊錄", args.params)
-    googledoc_user = config['googledoc']['email']
-    googledoc_pass = config['googledoc']['password']
-    spreadsheet = config['googledoc']['spreadsheet']
-    worksheet = config['googledoc']['worksheet']
+    googledoc_user = config.Get('googledoc', 'email')
+    googledoc_pass = config.Get('googledoc', 'password')
+    spreadsheet = config.Get('googledoc', 'spreadsheet')
+    worksheet = config.Get('googledoc', 'worksheet')
 
     spr = Spreadsheet(googledoc_user, googledoc_pass, spreadsheet)
     result = spr.getWorksheetCellArray(worksheet)
@@ -45,9 +45,9 @@ def cmd_invite(args):
     global config, logger
 
     if args.use_fb:
-        username = config['facebook']['username']
-        password = config['facebook']['password']
-        facebook_group_id = config['facebook']['group_id']
+        username = config.Get('facebook', 'username')
+        password = config.Get('facebook', 'password')
+        facebook_group_id = config.Get('facebook', 'group_id')
 
         this_thursday = common.getThursday(0)
         title = 'HackingThursday固定聚會(%s)' % this_thursday
@@ -56,11 +56,11 @@ def cmd_invite(args):
         end_time = '%sT10:00:00-0400' % this_thursday
 
         def check_token():
-            graph = Graph(config['facebook']['access_token'])
+            graph = Graph(config.Get('facebook', 'access_token'))
 
             if graph.getUID():
                 logger.info('valid token')
-                return config['facebook']['access_token']
+                return config.Get('facebook', 'access_token')
             else:
                 logger.info('invalid token, try get new one')
                 fb = Facebook()
@@ -92,8 +92,8 @@ def cmd_invite(args):
                 print("dryrun 模式，未貼文")
 
     if args.use_ptt:
-        ID = config['bbs']['user']
-        PASSWORD = config['bbs']['pass']
+        ID = config.Get('bbs', 'user')
+        PASSWORD = config.Get('bbs', 'pass')
         PartyDate = common.getThursday(0)
 
         board = 'Linux'
@@ -120,10 +120,10 @@ def cmd_invite(args):
     if args.use_email:
         PartyDate = common.getThursday(0)
 
-        username = config['gmail']['username']
-        password = config['gmail']['password']
-        Sender = config['hackingthursday']['who']  # 值日生的 email
-        Reciver = config['hackingthursday']['email_address']
+        username = config.Get('gmail', 'username')
+        password = config.Get('gmail', 'password')
+        Sender = config.Get('hackingthursday', 'who')  # 值日生的 email
+        Reciver = config.Get('hackingthursday', 'email_address')
         Subject = "HackingThursday 固定聚會 (%s)" % PartyDate
 
         # 這裡改從網頁上將通告內文抓下來，以後改用網頁來更新通告。
@@ -144,11 +144,11 @@ def cmd_notify(args):
     if args.use_wiki:
         PartyDate = common.getThursday(0)
 
-        username = config['gmail']['username']
-        password = config['gmail']['password']
-        Sender = config['hackingthursday']['who']  # 值日生的 email
-        # Receiver = config['hackingthursday']['email_address']
-        Receiver = config['hackingthursday']['who']  # 值日生的 email
+        username = config.Get('gmail', 'username')
+        password = config.Get('gmail', 'password')
+        Sender = config.Get('hackingthursday', 'who')  # 值日生的 email
+        # Receiver = config.Get('hackingthursday', 'email_address')
+        Receiver = config.Get('hackingthursday', 'who')  # 值日生的 email
         Subject = "HackingThursday 聚會手記 (%s)" % PartyDate
 
         WikidotNoteURL = "http://www.hackingthursday.org/" + PartyDate
@@ -182,8 +182,8 @@ def cmd_wikidot(args):
     global config, logger
 
     if args.do_index:
-        api_user = config['wikidot']['wikidot_api_user']
-        api_key = config['wikidot']['wikidot_api_key']
+        api_user = config.Get('wikidot', 'wikidot_api_user')
+        api_key = config.Get('wikidot', 'wikidot_api_key')
         site = 'hackingthursday'
 
         wikidot = Wikidot()
@@ -260,8 +260,8 @@ def cmd_wikidot(args):
             print("dryrun 模式，未寫入")
 
     if args.do_newpage:
-        user_app = config['wikidot']['wikidot_api_user']
-        key = config['wikidot']['wikidot_api_key']
+        user_app = config.Get('wikidot', 'wikidot_api_user')
+        key = config.Get('wikidot', 'wikidot_api_key')
 
         tomorrow = getThursday(0)
         lastweek = getThursday(-1)
@@ -316,18 +316,18 @@ def cmd_wikidot(args):
 
     if args.do_rebuild:
         print("更新 wiki 個人頁面")  # 用來取代 h4_wikidot_rebuild
-        api_user = config['wikidot']['wikidot_api_user']
-        api_key = config['wikidot']['wikidot_api_key']
+        api_user = config.Get('wikidot', 'wikidot_api_user')
+        api_key = config.Get('wikidot', 'wikidot_api_key')
         site = 'hackingthursday'
         root_url = 'http://www.hackingthursday.org'
         wikidot = Wikidot()
         wikidot.auth(api_user, api_key)
         wikidot.set_site(site)
-        googledoc_user = config['googledoc']['email']
-        googledoc_pass = config['googledoc']['password']
-        spreadsheet = config['googledoc']['spreadsheet']
-        worksheet = config['googledoc']['worksheet']
-        dryrun = config['googledoc']['dryrun']
+        googledoc_user = config.Get('googledoc', 'email')
+        googledoc_pass = config.Get('googledoc', 'password')
+        spreadsheet = config.Get('googledoc', 'spreadsheet')
+        worksheet = config.Get('googledoc', 'worksheet')
+        dryrun = config.Get('googledoc', 'dryrun')
         dryrun = True
 
         spr = Spreadsheet(googledoc_user, googledoc_pass, spreadsheet)
