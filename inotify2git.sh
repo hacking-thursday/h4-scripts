@@ -110,10 +110,11 @@ main() {
     ## argument parse end ##
 
     # kill subprocess when exit
-    trap 'echo kill ${jobs[*]} ; ((${#jobs[@]} == 0)) || kill ${jobs[*]} ; exit' EXIT HUP TERM INT
+    # trap 'echo kill ${jobs[*]} ; ((${#jobs[@]} == 0)) || kill ${jobs[*]} ; exit' EXIT HUP TERM INT
+    trap 'echo kill ${jobs[*]} ; ((${#jobs[@]} == 0)) || pkill -P ${jobs[*]} ; exit' EXIT HUP TERM INT
 
     # inotify monitor
-    (echo "$BASHPID" > pid-file; inotifywait -m -r -e create -e modify -e close_write --exclude "\.git/*" $logdir) | check_message_full &
+    (echo "$BASHPID" > pid-file; inotifywait -m -r -e create -e modify -e close_write --exclude "\.git/*" $logdir | check_message_full) &
     jobs+=(`cat pid-file`)
 
     # time monitor
