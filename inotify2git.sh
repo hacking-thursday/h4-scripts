@@ -3,7 +3,7 @@
 #### config ####
 logdir='/home/yan/.irssi/irclogs/freenode/#h4'  # 此資料夾也必須要是個 git repo
 message_full=15  # 訊息變動的行數
-check_time=15  # 檢查檔案變動的頻率 (分鐘)
+check_time=30  # 檢查檔案變動的頻率 (分鐘)
 #### config ####
 
 DEBUG="false"
