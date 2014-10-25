@@ -7,7 +7,6 @@ check_time=15  # 檢查檔案變動的頻率 (分鐘)
 #### config ####
 
 jobs=()
-trap 'echo kill ${jobs[*]} ; ((${#jobs[@]} == 0)) || kill ${jobs[*]} ; exit' EXIT HUP TERM INT
 
 check_message_full() {
     while read res
@@ -67,6 +66,9 @@ main() {
         shift
     done
     ## argument parse end ##
+
+    # kill subprocess when exit
+    trap 'echo kill ${jobs[*]} ; ((${#jobs[@]} == 0)) || kill ${jobs[*]} ; exit' EXIT HUP TERM INT
 
     # inotify monitor
     (echo "$BASHPID" > pid-file; inotifywait -m -r -e create -e modify -e close_write --exclude "\.git/*" $logdir) | check_message_full &
