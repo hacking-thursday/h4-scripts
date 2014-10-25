@@ -25,7 +25,7 @@ check_message_full() {
             cd $logdir; \
             git add $file; \
             git commit -m "new file: $file"; \
-	    git push origin master
+            git push origin master
             ;;
         MODIFY)
             changes=`cd $logdir; git diff --numstat | awk '{print $1}'`
@@ -34,7 +34,7 @@ check_message_full() {
                 cd $logdir; \
                 git add $file; \
                 git commit -m "`tail -n 1 $file`"; \
-	        git push origin master
+                git push origin master
             fi
             ;;
         esac
@@ -49,11 +49,25 @@ check_file_change() {
         cd $logdir; \
         git add $file; \
         git commit -m "`tail -n 1 $file`"; \
-	git push origin master
+        git push origin master
     done
 }
 
 main() {
+    ## argument parse start ##
+    while [ $# != 0 ]
+        do
+        case "$1" in
+        -h)
+            echo -e "Usage:"
+            echo -e "$0 [arguments] dir|file\n"
+            exit 0
+            ;;
+        esac
+        shift
+    done
+    ## argument parse end ##
+
     # inotify monitor
     (echo "$BASHPID" > pid-file; inotifywait -m -r -e create -e modify -e close_write --exclude "\.git/*" $logdir) | check_message_full &
     jobs+=(`cat pid-file`)
@@ -61,7 +75,7 @@ main() {
     # time monitor
     while true; do
         echo `date +%s`
-	sleep $(($((check_time)) * 60))
+        sleep $(($((check_time)) * 60))
         check_file_change
     done
 }
