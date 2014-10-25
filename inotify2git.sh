@@ -66,14 +66,25 @@ check_file_change() {
     done
 }
 
+display_usage() {
+    echo -e "Usage:"
+    echo -e "$0 [arguments] file|dir\n"
+    echo -e "Arguments:"
+    echo -e "   -d debug"
+}
+
 main() {
     ## argument parse start ##
+    if [ $# == 0 ]; then
+        display_usage
+        exit
+    fi
+
     while [ $# != 0 ]
         do
         case "$1" in
         -h)
-            echo -e "Usage:"
-            echo -e "$0 [arguments] dir|file\n"
+            display_usage
             exit 0
             ;;
         -d | --debug)
