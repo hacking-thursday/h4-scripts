@@ -3,10 +3,11 @@
 #### config ####
 logdir='/home/yan/.irssi/irclogs/freenode/#h4'  # 此資料夾也必須要是個 git repo
 message_full=15  # 訊息變動的行數
-check_time=15  # 檢查檔案變動的頻率 (分鐘)
+check_time=30  # 檢查檔案變動的頻率 (分鐘)
 #### config ####
 
 DEBUG="false"
+DRYRUN="false"
 jobs=()
 
 check_message_full() {
@@ -28,7 +29,9 @@ check_message_full() {
             cd $logdir; \
             git add $file; \
             git commit -m "new file: $file"; \
-            git push origin master
+            if [ "$DRYRUN" = "false" ]; then \
+                git push origin master; \
+            fi
             ;;
         MODIFY)
             if [ "$DEBUG" = "true" ]; then
@@ -47,7 +50,9 @@ check_message_full() {
                 cd $logdir; \
                 git add $file; \
                 git commit -m "`tail -n 1 $file`"; \
-                git push origin master
+                if [ "$DRYRUN" = "false" ]; then \
+                    git push origin master; \
+                fi
             fi
             ;;
         esac
@@ -62,7 +67,9 @@ check_file_change() {
         cd $logdir; \
         git add $file; \
         git commit -m "`tail -n 1 $file`"; \
-        git push origin master
+        if [ "$DRYRUN" = "false" ]; then \
+            git push origin master; \
+        fi
     done
 }
 
@@ -70,7 +77,8 @@ display_usage() {
     echo -e "Usage:"
     echo -e "$0 [arguments] file|dir\n"
     echo -e "Arguments:"
-    echo -e "   -d debug"
+    echo -e "   -d | --debug    print debug message"
+    echo -e "   --dryrun        dryrun"
 }
 
 main() {
@@ -89,6 +97,9 @@ main() {
             ;;
         -d | --debug)
             DEBUG="true"
+            ;;
+        --dryrun)
+            DRYRUN="true"
             ;;
         *)
             logdir="$1"
