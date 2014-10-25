@@ -79,6 +79,9 @@ main() {
         -d | --debug)
             DEBUG="true"
             ;;
+        *)
+            logdir="$1"
+            ;;
         esac
         shift
     done
