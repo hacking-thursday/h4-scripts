@@ -6,8 +6,8 @@ message_full=15  # 訊息變動的行數
 check_time=15  # 檢查檔案變動的頻率 (分鐘)
 #### config ####
 
+DEBUG="false"
 jobs=()
-trap 'echo kill ${jobs[*]} ; ((${#jobs[@]} == 0)) || kill ${jobs[*]} ; exit' EXIT HUP TERM INT
 
 check_message_full() {
     while read res
@@ -15,26 +15,39 @@ check_message_full() {
         event=`echo $res | awk '{print $2'}`
         file=`echo $res | awk '{print $3'}`
 
-        echo $res
+        if [ "$DEBUG" = "true" ]; then
+            echo $res
+        fi
 
         case "$event" in
         CREATE)
-            # Traitement sur création d'un fichier
-            echo "new file: $file"
+            if [ "$DEBUG" = "true" ]; then
+                echo "new file: $file"
+            fi
 
             cd $logdir; \
             git add $file; \
             git commit -m "new file: $file"; \
-	    git push origin master
+            git push origin master
             ;;
         MODIFY)
+            if [ "$DEBUG" = "true" ]; then
+                echo "file change: $file"
+            fi
+
             changes=`cd $logdir; git diff --numstat | awk '{print $1}'`
+
+            if [ "$DEBUG" = "true" ]; then
+                echo "change line: $changes"
+                echo "message full: $message_full"
+                echo "change - full: $((changes - message_full))"
+            fi
 
             if [ $((changes)) -ge $((message_full)) ]; then
                 cd $logdir; \
                 git add $file; \
                 git commit -m "`tail -n 1 $file`"; \
-	        git push origin master
+                git push origin master
             fi
             ;;
         esac
@@ -49,24 +62,46 @@ check_file_change() {
         cd $logdir; \
         git add $file; \
         git commit -m "`tail -n 1 $file`"; \
-	git push origin master
+        git push origin master
     done
 }
 
 main() {
+    ## argument parse start ##
+    while [ $# != 0 ]
+        do
+        case "$1" in
+        -h)
+            echo -e "Usage:"
+            echo -e "$0 [arguments] dir|file\n"
+            exit 0
+            ;;
+        -d | --debug)
+            DEBUG="true"
+            ;;
+        esac
+        shift
+    done
+    ## argument parse end ##
+
+    # kill subprocess when exit
+    trap 'echo kill ${jobs[*]} ; ((${#jobs[@]} == 0)) || kill ${jobs[*]} ; exit' EXIT HUP TERM INT
+
     # inotify monitor
     (echo "$BASHPID" > pid-file; inotifywait -m -r -e create -e modify -e close_write --exclude "\.git/*" $logdir) | check_message_full &
     jobs+=(`cat pid-file`)
 
     # time monitor
     while true; do
-        echo `date +%s`
-	sleep $(($((check_time)) * 60))
+        if [ "$DEBUG" = "true" ]; then
+            echo `date +%s`
+        fi
+        sleep $(($((check_time)) * 60))
         check_file_change
     done
 }
 
 if [[ "$BASH_SOURCE" == "$0" ]]
 then
-    main
+    main $@
 fi
