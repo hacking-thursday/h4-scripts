@@ -10,7 +10,50 @@ DEBUG="false"
 DRYRUN="false"
 jobs=()
 
+add_new_file() {
+    file=$1
+
+    if [ "$DEBUG" = "true" ]; then
+        echo "new file: $file"
+    fi
+
+    cd $logdir; \
+    git add $file; \
+    git commit -m "new file: $file"; \
+    if [ "$DRYRUN" = "false" ]; then \
+        git push origin master; \
+    fi
+}
+
 check_message_full() {
+    file=$1
+
+    if [ "$DEBUG" = "true" ]; then
+        echo "file change: $file"
+    fi
+
+    changes=`cd $logdir; git diff --numstat | awk '{print $1}'`
+
+    if [ "$DEBUG" = "true" ]; then
+        echo "change line: $changes"
+        echo "message full: $message_full"
+        echo "change - full: $((changes - message_full))"
+    fi
+
+    if [ $((changes)) -ge $((message_full)) ]; then
+        cd $logdir; \
+        git add $file; \
+        git commit -m "`tail -n 1 $file`"; \
+        if [ "$DRYRUN" = "false" ]; then \
+            git push origin master; \
+        fi
+    fi
+}
+
+inotify_file_create_handler="add_new_file"
+inotify_file_modify_handler="check_message_full"
+
+inotify_handler() {
     while read res
     do
         event=`echo $res | awk '{print $2'}`
@@ -22,37 +65,13 @@ check_message_full() {
 
         case "$event" in
         CREATE)
-            if [ "$DEBUG" = "true" ]; then
-                echo "new file: $file"
-            fi
-
-            cd $logdir; \
-            git add $file; \
-            git commit -m "new file: $file"; \
-            if [ "$DRYRUN" = "false" ]; then \
-                git push origin master; \
+            if [ \"$inotify_file_create_handler\" ]; then
+                eval $inotify_file_create_handler $file
             fi
             ;;
         MODIFY)
-            if [ "$DEBUG" = "true" ]; then
-                echo "file change: $file"
-            fi
-
-            changes=`cd $logdir; git diff --numstat | awk '{print $1}'`
-
-            if [ "$DEBUG" = "true" ]; then
-                echo "change line: $changes"
-                echo "message full: $message_full"
-                echo "change - full: $((changes - message_full))"
-            fi
-
-            if [ $((changes)) -ge $((message_full)) ]; then
-                cd $logdir; \
-                git add $file; \
-                git commit -m "`tail -n 1 $file`"; \
-                if [ "$DRYRUN" = "false" ]; then \
-                    git push origin master; \
-                fi
+            if [ \"$inotify_file_modify_handler\" ]; then
+                eval $inotify_file_modify_handler $file
             fi
             ;;
         esac
@@ -114,7 +133,7 @@ main() {
     trap 'echo kill ${jobs[*]} ; ((${#jobs[@]} == 0)) || pkill -P ${jobs[*]} ; exit' EXIT HUP TERM INT
 
     # inotify monitor
-    (echo "$BASHPID" > pid-file; inotifywait -m -r -e create -e modify -e close_write --exclude "\.git/*" $logdir | check_message_full) &
+    (echo "$BASHPID" > pid-file; inotifywait -m -r -e create -e modify -e close_write --exclude "\.git/*" $logdir | inotify_handler) &
     jobs+=(`cat pid-file`)
 
     # time monitor
