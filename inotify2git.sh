@@ -65,12 +65,12 @@ inotify_handler() {
 
         case "$event" in
         CREATE)
-            if [ \"$inotify_file_create_handler\" ]; then
+            if [ "$inotify_file_create_handler" != "" ]; then
                 eval $inotify_file_create_handler $file
             fi
             ;;
         MODIFY)
-            if [ \"$inotify_file_modify_handler\" ]; then
+            if [ "$inotify_file_modify_handler" != "" ]; then
                 eval $inotify_file_modify_handler $file
             fi
             ;;
