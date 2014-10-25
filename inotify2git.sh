@@ -82,5 +82,5 @@ main() {
 
 if [[ "$BASH_SOURCE" == "$0" ]]
 then
-    main
+    main $@
 fi
