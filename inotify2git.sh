@@ -6,6 +6,7 @@ message_full=15  # 訊息變動的行數
 check_time=15  # 檢查檔案變動的頻率 (分鐘)
 #### config ####
 
+DEBUG="false"
 jobs=()
 
 check_message_full() {
@@ -14,12 +15,15 @@ check_message_full() {
         event=`echo $res | awk '{print $2'}`
         file=`echo $res | awk '{print $3'}`
 
-        echo $res
+        if [ "$DEBUG" = "true" ]; then
+            echo $res
+        fi
 
         case "$event" in
         CREATE)
-            # Traitement sur création d'un fichier
-            echo "new file: $file"
+            if [ "$DEBUG" = "true" ]; then
+                echo "new file: $file"
+            fi
 
             cd $logdir; \
             git add $file; \
@@ -27,7 +31,17 @@ check_message_full() {
             git push origin master
             ;;
         MODIFY)
+            if [ "$DEBUG" = "true" ]; then
+                echo "file change: $file"
+            fi
+
             changes=`cd $logdir; git diff --numstat | awk '{print $1}'`
+
+            if [ "$DEBUG" = "true" ]; then
+                echo "change line: $changes"
+                echo "message full: $message_full"
+                echo "change - full: $((changes - message_full))"
+            fi
 
             if [ $((changes)) -ge $((message_full)) ]; then
                 cd $logdir; \
@@ -62,6 +76,9 @@ main() {
             echo -e "$0 [arguments] dir|file\n"
             exit 0
             ;;
+        -d | --debug)
+            DEBUG="true"
+            ;;
         esac
         shift
     done
@@ -76,7 +93,9 @@ main() {
 
     # time monitor
     while true; do
-        echo `date +%s`
+        if [ "$DEBUG" = "true" ]; then
+            echo `date +%s`
+        fi
         sleep $(($((check_time)) * 60))
         check_file_change
     done
