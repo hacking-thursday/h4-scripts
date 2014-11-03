@@ -5,7 +5,7 @@ IRC_PORT=6667
 IRC_USERNAME='h4bot'
 IRC_FULLNAME='h4bot'
 IRC_NICK='h4bot'
-IRC_CHANNEL='#yan'
+IRC_CHANNEL='#h4'
 
 send_irc_message() {
     message=$1
