@@ -1,0 +1,64 @@
+#!/bin/bash
+# 檢查 sync.in/h4 內容變動，並傳送訊息至 irc
+#
+# Setup :
+#     */20 * * * *      /ABS_PATH_TO/h4-scripts/etherpad_irc_notifier
+
+DIR=`dirname $0`
+
+. $DIR/lib/common.sh
+. $DIR/lib/date.sh
+. $DIR/lib/http.sh
+. $DIR/lib/irc.sh
+
+#### config ####
+pad_url='http://sync.in/ep/pad/view/h4/latest'
+notify_message='[sync.in] page "h4" edited http://sync.in/h4'
+DEBUG="true"
+DRYRUN="false"
+#### config ####
+
+RevFile="$DIR/tmp/etherpad.rev"
+
+parse_update_time() {
+    content=$1
+
+    re='<div id="timer">([0-9]{2}/[0-9]{2}/[0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2})</div>'
+    if [[ $content =~ $re ]]; then
+        echo ${BASH_REMATCH[1]}
+    fi
+}
+
+main() {
+    # create cache data dir
+    test -d $DIR/tmp || mkdir $DIR/tmp
+
+    # read web content
+    content=$(read_url $pad_url)
+    timer=$(parse_update_time "$content")
+
+    # check and send notification
+    prev_timestamp=$(cat $RevFile 2> /dev/null)
+    lastest_timestamp=$(date_to_timestamp "$timer")
+    if [[ $prev_timestamp == "" ]]
+    then
+        debug_print 'create revision file'
+        echo $lastest_timestamp > $RevFile
+    else
+        if [[ $((lastest_timestamp)) > $((prev_timestamp)) ]]
+        then
+            debug_print 'new changes'
+
+            send_irc_message "$notify_message"
+
+            echo $lastest_timestamp > $RevFile
+        else
+            debug_print 'up to date'
+        fi
+    fi
+}
+
+if [[ "$BASH_SOURCE" == "$0" ]]
+then
+    main $@
+fi

@@ -3,6 +3,7 @@
 import gdata
 import gdata.spreadsheet
 import gdata.spreadsheet.service
+import re
 
 DEBUG = False
 
@@ -50,6 +51,10 @@ class Spreadsheet:
 
         return worksheet_id
 
+    def getWorksheetCellArray(self, worksheet):
+        worksheet = self.Worksheet(self, worksheet)
+        return worksheet.getCellArray()
+
     class Worksheet:
         ''' An iterable google spreadsheet object.  Each row is a dictionary with an entry for each field, keyed by the header.  GData libraries from Google must be installed.'''
 
@@ -94,6 +99,55 @@ class Spreadsheet:
 
         def getCells(self):
             return self.spr_client.GetCellsFeed(self.spreadsheet_id, self.worksheet_id)
+
+        def getCellArray(self):
+            res_ary = []
+            col_mapping = {}
+            result_ary = {}
+
+            # 取得列表內容
+            feed = self.getCells()
+
+            for i, entry in enumerate(feed.entry):
+                #print (i, entry.title.text, entry.content.text)
+                pattern = r"(\w)(\d+)"
+                matches = re.findall(pattern, entry.title.text)
+                #print matches
+                col_idx = matches[0][0]
+                row_idx = matches[0][1]
+
+                res_ary.append((row_idx, col_idx, entry.content.text))
+
+            # 取得欄位名稱對應
+            for item in res_ary:
+                row_idx = item[0]
+                col_idx = item[1]
+                value = item[2]
+
+                if row_idx == "1":
+                    col_mapping[col_idx] = value.strip()
+
+            # 處理並產生回傳陣列
+            for item in res_ary:
+                row_idx = item[0]
+                col_idx = item[1]
+                value = item[2]
+
+                if row_idx != '1':
+                    if not row_idx in result_ary:
+                        result_ary[row_idx] = {}
+                        for col_name in col_mapping.values():
+                            result_ary[row_idx][col_name] = ''
+
+                    col_name = col_mapping[col_idx]
+
+                    # 修正手機的格式
+                    if col_name == "Mobile" and value.__len__() == 9:
+                        value = "0" + value
+
+                    result_ary[row_idx][col_name] = value
+
+            return result_ary
 
 
 if __name__ == '__main__':

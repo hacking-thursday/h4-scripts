@@ -27,7 +27,7 @@ class Gmail():
         except smtplib.SMTPAuthenticationError:
             return False
 
-    def send(self, sender, recipient, subject, text=None, html=None, files=[], cc=[]):
+    def send(self, sender, recipient, subject, text=None, html=None, files=[], cc=[], dryrun=False):
         try:
             msg = MIMEMultipart("alternative")
 
@@ -58,9 +58,12 @@ class Gmail():
                 msg.attach(part)
 
             # 寄出
-            return self.smtp.sendmail(sender, list(chain(recipient, cc)), msg.as_string())
-        except Exception, error:
-            print "Unable to send e-mail: '%s'." % str(error)
+            if not dryrun:
+                self.smtp.sendmail(sender, list(chain(recipient, cc)), msg.as_string())
+
+            return True
+        except Exception as error:
+            print("Unable to send e-mail: '%s'." % str(error))
 
             return False
 

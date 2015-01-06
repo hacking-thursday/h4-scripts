@@ -6,175 +6,55 @@
 # License: MIT
 #
 
-import datetime
+from __future__ import print_function
 
-import smtplib
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEText import MIMEText
-from email.Header import Header
-
-import os
 import ConfigParser
-
-import libxml2
-import StringIO
-
+import datetime
+import os
+import re
+import subprocess
+import sys
 import tempfile
 
-import re
-import string
-import sys
-
-root_path = os.path.abspath(os.path.dirname(__file__))
-sys.path.append(os.path.join(root_path, '3rd'))
-sys.path.append(os.path.join(root_path, '3rd', 'gdata-python-client', 'src'))
-
+from bs4 import BeautifulSoup
 import html2text
-import gdata.spreadsheet.service
-import gdata.service
-import atom.service
-import gdata.spreadsheet
-import atom
-
-import GoogleSpreadsheetAPI
 
 
-def thisThursday():
-    delta_days = 4 - datetime.date.today().isoweekday()
-    this_thursday = datetime.date.today() + datetime.timedelta(days=delta_days)
-    return this_thursday.isoformat()
-
-
-def thisThursday_fb_format():
-    delta_days = 4 - datetime.date.today().isoweekday()
-    this_thursday = datetime.date.today() + datetime.timedelta(days=delta_days)
-    return this_thursday.strftime('X%m/X%d/X%Y').replace('X0', 'X').replace('X', '')
-
-
-def nextThursday(this_thursday_str):
-    this_thursday = datetime.datetime.strptime(this_thursday_str, "%Y-%m-%d")
-    next_thursday = this_thursday + datetime.timedelta(days=7)
-    result = next_thursday.date().isoformat()
-    return result
-
-
-def prevThursday(this_thursday_str):
-    this_thursday = datetime.datetime.strptime(this_thursday_str, "%Y-%m-%d")
-    prev_thursday = this_thursday + datetime.timedelta(days=-7)
-    result = prev_thursday.date().isoformat()
-    return result
-
-
-def isThursday(date_str):
-    this_day = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
-    result = (this_day.isoweekday() == 4)
-    return result
-
-
-def isFuture(date_str):
-    this_day = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
-    today = datetime.date.today()
-    if today >= this_day:
-        return False
+# idx == 0 => 這一週的星期四
+# idx == 1 => 下一週的星期四
+# idx == 2 => 下下一週的星期四
+# idx == -1 => 上一週的星期四
+# idx == -2 => 上上一週的星期四
+# ...以此類推
+def getThursday(idx, fmt="default"):
+    delta_days = 4 - datetime.date.today().isoweekday() + idx * 7
+    the_thursday = datetime.date.today() + datetime.timedelta(days=delta_days)
+    if fmt == "default":
+        res = the_thursday.isoformat()
+    elif fmt == "fb":
+        res = the_thursday.strftime('X%m/X%d/X%Y').replace('X0', 'X').replace('X', '')
     else:
-        return True
+        res = the_thursday.isoformat()
+
+    return res
 
 
-#
-# send_gmail("matlinuxer2@gmail.com", "matlinuxer2@gmail.com", "Hello from python!", "<hr/><h1>hello from python</h1><hr/>", "USERNAME", "PASSWORD")
-#
-def send_gmail(sender, recipient, subject, text, html, username, passwd):
-    msg = MIMEMultipart("alternative")
+# 回傳 0 => 這一週
+# 回傳 1 => 下一週
+# 回傳 2 => 下下一週
+# 回傳 -1 => 上一週
+# 回傳 -2 => 上上一週
+# 回傳 False => 非星期四
+def chkThursday(date_str):
+    base_day = datetime.datetime.strptime(getThursday(0), "%Y-%m-%d").date()
+    this_day = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
 
-    msg['Subject'] = Header(subject, "utf-8")
-    msg['From'] = sender
-    msg['To'] = recipient
-
-    msg.attach(MIMEText(text, "plain", "utf-8"))
-    msg.attach(MIMEText(html, "html", "utf-8"))
-
-    mailServer = smtplib.SMTP("smtp.gmail.com", 587)
-    mailServer.ehlo()
-    mailServer.starttls()
-    mailServer.ehlo()
-    mailServer.login(username, passwd)
-    mailServer.sendmail(sender, recipient, msg.as_string())
-    # Should be mailServer.quit(), but that crashes...
-    mailServer.close()
-
-
-##################
-## Settings
-##################
-if os.name == "posix":
-    settings_file = os.path.join(os.getenv('HOME'), ".h4notifier.ini")
-else:
-    settings_file = None
-
-volatile_settings = {
-    'username': 'USERNAME',
-    'password': 'PASSWORD',
-    'who': 'who@gmail.com',
-    'email_address': 'hackingthursday@googlegroups.com',
-    'wikidot_api_user': 'WIKIDOT_API_USER',
-    'wikidot_api_key': 'WIKIDOT_API_KEY',
-    'facebook_user': 'FB_USER',
-    'facebook_password': 'FB_PASS',
-    'facebook_api_key': 'FB_API_KEY',
-    'facebook_secret': 'FB_SECRET',
-    'facebook_gid': '############',
-    'bbs_user': 'guest',
-    'bbs_pass': '',
-    'googledoc_email': '',
-    'googledoc_password': '',
-}
-
-
-def read_settings_from_file():
-    if os.access(settings_file, os.R_OK):
-        config = ConfigParser.RawConfigParser()
-        config.read(settings_file)
-
-        try:
-            # Section: gmail
-            volatile_settings['username'] = config.get('gmail', 'username')
-            volatile_settings['password'] = config.get('gmail', 'password')
-
-            # Section: hackingthursday
-            volatile_settings['who'] = config.get('hackingthursday', 'who')
-            volatile_settings['email_address'] = config.get('hackingthursday', 'email_address')
-
-            # Section: wikidot
-            volatile_settings['wikidot_api_user'] = config.get('wikidot', 'wikidot_api_user')
-            volatile_settings['wikidot_api_key'] = config.get('wikidot', 'wikidot_api_key')
-
-            # Section: facebook
-            volatile_settings['facebook_password'] = config.get('facebook', 'password')
-            volatile_settings['facebook_user'] = config.get('facebook', 'username')
-            volatile_settings['facebook_api_key'] = config.get('facebook', 'facebook_api_key')
-            volatile_settings['facebook_secret'] = config.get('facebook', 'facebook_secret')
-            volatile_settings['facebook_gid'] = config.get('facebook', 'facebook_gid')
-
-            # Section: bbs
-            volatile_settings['bbs_user'] = config.get('bbs', 'user')
-            volatile_settings['bbs_pass'] = config.get('bbs', 'pass')
-
-            # Section: googledoc
-            volatile_settings['googledoc_email'] = config.get('googledoc', 'email')
-            volatile_settings['googledoc_password'] = config.get('googledoc', 'password')
-            volatile_settings['googledoc_spreadsheet'] = config.get('googledoc', 'spreadsheet')
-            volatile_settings['googledoc_worksheet'] = config.get('googledoc', 'worksheet')
-
-            value = config.get('googledoc', 'dryrun')
-            value = value.strip().lower()
-            if value in ["yes", "y", "true", "on"]:
-                value = True
-            else:
-                value = False
-            volatile_settings['googledoc_dryrun'] = value
-
-        except:
-            pass
+    delta_days = (this_day - base_day).days
+    if delta_days % 7 == 0:
+        res = delta_days / 7
+    else:
+        res = False
+    return res
 
 
 ##################
@@ -193,34 +73,10 @@ Facebook群組: http://www.facebook.com/groups/hackingday/
 '''
 
 
-def file2string(path):
-    result = ""
-    f = open(path)
-    for line in f:
-        result += line
-
-    f.close()
-
-    return result
-
-
 def string2file(string, path):
     f = open(path, 'w')
     f.write(string)
     f.close()
-
-
-def html2xml(the_html):
-    result = ""
-    htmlfile = tempfile.mktemp()
-    xmlfile = tempfile.mktemp()
-    string2file(the_html, htmlfile)
-    os.system("tidy -q -asxhtml -numeric -utf8 < " + htmlfile + " > " + xmlfile)
-    result = file2string(xmlfile)
-    os.system("rm " + htmlfile)
-    os.system("rm " + xmlfile)
-
-    return result
 
 
 def html2txt(the_html):
@@ -229,98 +85,21 @@ def html2txt(the_html):
 
 
 def get_wikidot_content_body(URL):
-    xmlfile = tempfile.mktemp()
     htmlfile = tempfile.mktemp()
 
     os.system("wget -O " + htmlfile + " " + URL)
     the_html = file2string(htmlfile)
     os.system("rm " + htmlfile)
 
-    the_xml = html2xml(the_html)
-    string2file(the_xml, xmlfile)
-    doc = libxml2.parseFile(xmlfile)
+    soup = BeautifulSoup(the_html)
+    div = soup.findAll('div', attrs={'id': 'page-content'})
+    res_txt = ""
+    for d in div:
+        res_txt += d.prettify()
 
-    ctxt = doc.xpathNewContext()
-    ctxt.xpathRegisterNs('xhtml', 'http://www.w3.org/1999/xhtml')
-    rows = ctxt.xpathEval('//xhtml:div[@id="page-content"]')
-    ctxt.xpathFreeContext()
-
-    f = StringIO.StringIO()
-    buf = libxml2.createOutputBuffer(f, 'UTF-8')
-    rows[0].docSetRootElement(doc)
-    doc.saveFileTo(buf, 'UTF-8')
-
-    os.system("rm " + xmlfile)
-    result = f.getvalue()
+    result = res_txt
 
     return result
-
-
-def get_etherpad_content_body(URL):
-    htmlfile = tempfile.mktemp()
-
-    ret = os.system("wget -O " + htmlfile + " " + URL)
-    if ret == 0:
-        the_html = file2string(htmlfile)
-    else:
-        the_html = None
-    os.system("rm " + htmlfile)
-
-    result = the_html
-
-    return result
-
-
-def fetch_googledoc_spreadsheet(email, password, spreadsheet_name, worksheet_name):
-    res_ary = []
-    col_mapping = {}
-    result_ary = {}
-
-    # 取得列表內容
-    spr = GoogleSpreadsheetAPI.Spreadsheet(email, password, spreadsheet_name)
-    work = GoogleSpreadsheetAPI.Spreadsheet.Worksheet(spr, worksheet_name)
-    feed = work.getCells()
-
-    for i, entry in enumerate(feed.entry):
-        #print (i, entry.title.text, entry.content.text)
-        pattern = "(\w)(\d+)"
-        matches = re.findall(pattern, entry.title.text)
-        #print matches
-        col_idx = matches[0][0]
-        row_idx = matches[0][1]
-
-        res_ary.append((row_idx, col_idx, entry.content.text))
-
-    # 取得欄位名稱對應
-    for item in res_ary:
-        row_idx = item[0]
-        col_idx = item[1]
-        value = item[2]
-
-        if row_idx == "1":
-            col_mapping[col_idx] = value.strip()
-
-    # 處理並產生回傳陣列
-    for item in res_ary:
-        row_idx = item[0]
-        col_idx = item[1]
-        value = item[2]
-
-        if row_idx != '1':
-            if not row_idx in result_ary:
-                result_ary[row_idx] = {}
-                for col_name in col_mapping.values():
-                    result_ary[row_idx][col_name] = ''
-
-            col_name = col_mapping[col_idx]
-
-            # 修正手機的格式
-            if col_name == "Mobile" and value.__len__() == 9:
-                    value = "0" + value
-
-            result_ary[row_idx][col_name] = value
-
-    return result_ary
 
 
 def convert_spreadsheet_to_userdata(sprd_data):
@@ -347,14 +126,14 @@ def convert_spreadsheet_to_userdata(sprd_data):
 
 
 def search_userdata(sprd_data, keyword):
-        result = {}
-        for k in sprd_data.keys():
-                row = sprd_data[k]
-                for value in row.values():
-                        if value.find(keyword) >= 0:
-                                result[k] = row
+    result = {}
+    for k in sprd_data.keys():
+        row = sprd_data[k]
+        for value in row.values():
+            if value.find(keyword) >= 0:
+                result[k] = row
 
-        return result
+    return result
 
 
 def show_userdata(sprd_data_row):
@@ -375,3 +154,100 @@ def show_userdata(sprd_data_row):
     print("筆名".rjust(12), ":", field05.replace('||', ', '))
     print("notify".rjust(10), ":", field06)
     print("備註".rjust(12), ":", field07)
+
+
+def find_keyword_and_insert_content(content, find_kw_beg, find_kw_end, ins_str):
+    ins_pos_beg = content.find(find_kw_beg) + find_kw_beg.__len__()
+    if find_kw_beg is None:
+        ins_pos_end = ins_pos_beg
+    else:
+        ins_pos_end = content.find(find_kw_end)
+
+    if ins_pos_beg >= 0 and ins_pos_end >= ins_pos_beg:
+        new_content = content[0:ins_pos_beg] + ins_str + content[ins_pos_end:]
+    else:
+        new_content = content
+
+    return new_content
+
+
+def get_diff_output_between_two_string(orig, after):
+    tmp_old = tempfile.mktemp()
+    tmp_new = tempfile.mktemp()
+    string2file(orig, tmp_old)
+    string2file(after, tmp_new)
+    cmd = "diff -Naur %s %s" % (tmp_old, tmp_new)
+    out = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()[0]
+    os.unlink(tmp_old)
+    os.unlink(tmp_new)
+
+    return out
+
+
+def page_split_by_keyword(text, keyword):
+        pos = text.rfind(keyword)
+
+        if pos >= 0:
+            head = text[:pos]
+            body = text[pos:]
+        else:
+            head = text
+            body = ""
+
+        return head, body
+
+
+def send_notify_mail(author, author_data_obj, sender, root_url):
+    ad_obj = author_data_obj
+    author_data = ad_obj.find_author_by_name(author)
+    rel_name = author_data['rel_name']
+    url_name = author_data['url_name']
+    email = author_data['email']
+
+    Sender = sender  # 值日生的 email
+    Reciver = email
+    Subject = "H4個人頁面更新通知"
+    Link = "%s/user:%s" % (root_url, url_name)
+
+    Html = """
+<html>
+    <head>
+        <title>%s</title>
+    </head>
+    <body>
+    <a href="%s">%s</a>
+    <pre>
+Hi %s 您好:
+
+關於您在 H4 的個人手記有新的
+內容嘍~(網址如上) 歡迎您有空
+再來 H4 逛逛~!
+
+備註:
+這是 H4 值日生們新推出的小功
+能，bot 會將大家的筆記，依個
+別作排序跟整理在 wiki 上。
+
+%s
+
+備註2:
+個人頁面 "Table of Contents"
+以上的部份是可以編輯的。歡迎
+您編輯個人相關資訊及連結!!
+( Table of Contents 以下的部
+份則是會由 bot 定期產生並覆
+蓋 )
+
+若您有任何問題或是建議，都歡
+迎 feedback 給我們，謝謝!!
+    </pre>
+    </body>
+</html>
+""" % (Subject, Link, Link, rel_name, root_url + "h4note")
+
+    Txt = html2txt(Html)
+
+    receivers = Reciver.split(',')
+    for item in receivers:
+        receiver = item.strip()
+        gmail.send(Sender, receiver, Subject, Txt, Html)
