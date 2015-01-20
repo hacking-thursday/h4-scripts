@@ -55,6 +55,10 @@ class Spreadsheet:
         worksheet = self.Worksheet(self, worksheet)
         return worksheet.getCellArray()
 
+    def updateWorksheetCell(self, worksheet, row, col, inputValue):
+        worksheet = self.Worksheet(self, worksheet)
+        return worksheet.updateCell(row, col, inputValue)
+
     class Worksheet:
         ''' An iterable google spreadsheet object.  Each row is a dictionary with an entry for each field, keyed by the header.  GData libraries from Google must be installed.'''
 
