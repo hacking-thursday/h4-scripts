@@ -125,7 +125,7 @@ def cmd_invite(args):
 
         gmail.login(username, password)
         if args.dryrun is not True:
-            gmail.send(Sender, Reciver, Subject, Txt, Html)
+            gmail.send(Sender, Reciver, subject, Txt, Html)
         else:
             print("dryrun 模式，未寄出")
 
