@@ -79,8 +79,19 @@ def string2file(string, path):
     f.close()
 
 
+def file2string(path):
+    result = ""
+    f = open(path)
+    for line in f:
+        result += line
+
+    f.close()
+
+    return result
+
+
 def html2txt(the_html):
-    result = html2text.html2text(the_html.decode('utf-8'), '').encode('utf-8')
+    result = html2text.html2text(the_html, '')
     return result
 
 
