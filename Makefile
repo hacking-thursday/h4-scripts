@@ -44,10 +44,10 @@ pep8: # 檢查 PEP-8 語法規範
 	done
 
 test: # 函式庫測試
-	nosetests --exe -v test
+	DRY_RUN=True nosetests --exe -v test
 
 test_print:  # 函式庫測試及輸出 STDOUT
-	nosetests --nocapture --exe -v test
+	DRY_RUN=True nosetests --nocapture --exe -v test
 
 .SILENT: clean
 
