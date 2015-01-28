@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from Config import Config
-from Wikidot import Wikidot
+from h4_scripts.lib.Config import Config
+from h4_scripts.lib.Wikidot import Wikidot
 
 config = Config()
 user_app = config['wikidot']['wikidot_api_user']
