@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import common
-from Config import Config
-from PTT import PTT
+from h4_scripts.lib.Config import Config
+from h4_scripts.lib.PTT import PTT
 
 id = Config()['bbs']['user']
 password = Config()['bbs']['pass']

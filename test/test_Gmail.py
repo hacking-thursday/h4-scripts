@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import common
-from Config import Config
-from Gmail import Gmail
+from h4_scripts.lib.Config import Config
+from h4_scripts.lib.Gmail import Gmail
 
 username = Config()['gmail']['username']
 password = Config()['gmail']['password']
