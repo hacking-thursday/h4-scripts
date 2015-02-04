@@ -44,10 +44,20 @@ pep8: # 檢查 PEP-8 語法規範
 	done
 
 test: # 函式庫測試
-	DRY_RUN=True nosetests --exe -v test
+	@env | grep DRY_RUN; \
+	if [ $$? -eq 0 ]; then \
+		DRY_RUN=$$DRY_RUN nosetests --exe -v test; \
+	else \
+		DRY_RUN=True nosetests --exe -v test; \
+	fi
 
 test_print:  # 函式庫測試及輸出 STDOUT
-	DRY_RUN=True nosetests --nocapture --exe -v test
+	@env | grep DRY_RUN; \
+	if [ $$? -eq 0 ]; then \
+		DRY_RUN=$$DRY_RUN nosetests --nocapture --exe -v test; \
+	else \
+		DRY_RUN=True nosetests --nocapture --exe -v test; \
+	fi
 
 .SILENT: clean
 
