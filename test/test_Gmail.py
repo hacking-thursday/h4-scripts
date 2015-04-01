@@ -20,7 +20,7 @@ def test_login():
 
 
 def test_send():
-    assert client.send(username, username, subject, html=content, dryrun=DRY_RUN)
+    assert client.send(username, username, subject, html=content, dry_run=DRY_RUN)
 
 
 def test_quit():
