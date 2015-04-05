@@ -18,6 +18,9 @@ sdist:  # h4-scripts-x.x.x.tar.gz，支援 pip
 
 build: bdist_egg sdist  # 產生打包檔案會在 ./dist/ 中
 
+upload:  # 上傳到 PyPI
+	$(PY) setup.py sdist bdist_egg upload
+
 run-wiki:   # wididot 之個人頁面 rebuild
 	./h4_wikidot_rebuild 2>&1 | tee _logs/h4_wikidot_rebuild_$$(date "+%Y-%m-%d_%H%M%S").log
 
