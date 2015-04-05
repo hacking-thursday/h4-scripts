@@ -9,16 +9,16 @@
 
 from __future__ import print_function
 import argparse
-import common
-from common import *
-from lib.Config import Config
-from lib.Wikidot import Wikidot
-from lib.Gmail import Gmail
-from lib.PTT import PTT
-from lib.Logger import Logger
-from lib.Facebook import Facebook, Graph
-from lib.GoogleSpreadsheetAPI import Spreadsheet
-from lib.AuthorData import AuthorData
+import h4_scripts.common
+from h4_scripts.common import *
+from h4_scripts.Config import Config
+from h4_scripts.Wikidot import Wikidot
+from h4_scripts.Gmail import Gmail
+from h4_scripts.PTT import PTT
+from h4_scripts.Logger import Logger
+from h4_scripts.Facebook import Facebook, Graph
+from h4_scripts.GoogleSpreadsheetAPI import Spreadsheet
+from h4_scripts.AuthorData import AuthorData
 
 
 def cmd_search(args):
