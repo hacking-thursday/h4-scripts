@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import os
-from h4_scripts.lib.Config import Config
-from h4_scripts.lib.Wikidot import Wikidot
+from h4_scripts.Config import Config
+from h4_scripts.Wikidot import Wikidot
 
 DRY_RUN = True if os.environ.get('DRY_RUN') == 'True' else False
 

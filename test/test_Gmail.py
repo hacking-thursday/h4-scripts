@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import os
-from h4_scripts.lib.Config import Config
-from h4_scripts.lib.Gmail import Gmail
+from h4_scripts.Config import Config
+from h4_scripts.Gmail import Gmail
 
 DRY_RUN = True if os.environ.get('DRY_RUN') == 'True' else False
 
