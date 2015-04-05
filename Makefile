@@ -1,3 +1,4 @@
+PY=python
 LIBRARY_DIR=h4_scripts/lib
 
 help:  # 顯示命令列表
@@ -8,6 +9,14 @@ setup: # 安裝 dependencies
 	test -d 3rd || mkdir 3rd
 	test -d 3rd/wikidot/ || ( cd 3rd; git clone git://github.com/gabrys/wikidot.git; cd wikidot/; git apply ../0001-php-syntax-deprecated.patch )
 	sudo apt-get install -y tidy
+
+bdist_egg:  # h4_scripts-0.9.0-py2.7.egg，支援 easy_install
+	$(PY) setup.py bdist_egg
+
+sdist:  # h4-scripts-x.x.x.tar.gz，支援 pip
+	$(PY) setup.py sdist
+
+build: bdist_egg sdist  # 產生打包檔案會在 ./dist/ 中
 
 run-wiki:   # wididot 之個人頁面 rebuild
 	./h4_wikidot_rebuild 2>&1 | tee _logs/h4_wikidot_rebuild_$$(date "+%Y-%m-%d_%H%M%S").log
