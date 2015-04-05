@@ -201,7 +201,7 @@ class Graph():
 
         return event
 
-    def createEvent(self, facebookid, title, description, start_time, end_time):
+    def createEvent(self, facebookid, title, description, start_time, end_time, dry_run=False):
         query = '/events'
         url = GRAPH_URL + '/' + facebookid + query
 
@@ -213,10 +213,11 @@ class Graph():
 
         event_id = ''
         try:
-            req = urllib2.Request(url, data)
-            connection = urllib2.urlopen(req)
-            response = connection.read()
-            event_id = simplejson.loads(response)['id']
+            if not dry_run:
+                req = urllib2.Request(url, data)
+                connection = urllib2.urlopen(req)
+                response = connection.read()
+                event_id = simplejson.loads(response)['id']
         finally:
             return event_id
 
