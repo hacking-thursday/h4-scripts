@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import common
-from Config import Config
-from PTT import PTT
+import os
+from h4_scripts.Config import Config
+from h4_scripts.PTT import PTT
+
+DRY_RUN = True if os.environ.get('DRY_RUN') == 'True' else False
 
 id = Config()['bbs']['user']
 password = Config()['bbs']['pass']
@@ -23,8 +25,8 @@ def test_enter():
     assert client.enter(board)
 
 
-# def test_post():
-#     assert client.post(subject, content)
+def test_post():
+    assert client.post(subject, content, dry_run=DRY_RUN)
 
 
 def test_quit():

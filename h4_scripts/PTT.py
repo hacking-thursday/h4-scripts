@@ -48,29 +48,32 @@ class PTT():
 
         return False
 
-    def post(self, subject, content):
-        # 發表文章
-        self.tn.write('')
-        self.tn.write('\r')
-
-        # 標題
-        self.tn.write('%s\r' % big5(subject))
-
-        # 內容
-        for line in content.split('\n'):
-            self.tn.write('%s\r' % big5(line.rstrip()))
-
-        # 存檔
-        self.tn.write('')
-        self.tn.read_until(big5('確定要儲存檔案嗎'))
-        self.tn.write('S')
-        self.tn.write('\r')
-        self.tn.read_until(big5('任意鍵繼續'))
-        self.tn.write('\r')
-
-        if self.tn.read_until(big5('文章選讀')):
-            print '文章發布'
+    def post(self, subject, content, dry_run=False):
+        if dry_run:
             return True
+        else:
+            # 發表文章
+            self.tn.write('')
+            self.tn.write('\r')
+
+            # 標題
+            self.tn.write('%s\r' % big5(subject))
+
+            # 內容
+            for line in content.split('\n'):
+                self.tn.write('%s\r' % big5(line.rstrip()))
+
+            # 存檔
+            self.tn.write('')
+            self.tn.read_until(big5('確定要儲存檔案嗎'))
+            self.tn.write('S')
+            self.tn.write('\r')
+            self.tn.read_until(big5('任意鍵繼續'))
+            self.tn.write('\r')
+
+            if self.tn.read_until(big5('文章選讀')):
+                print '文章發布'
+                return True
 
         return False
 

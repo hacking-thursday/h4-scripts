@@ -60,7 +60,7 @@ class Wikidot():
         else:
             return False
 
-    def save_page(self, page_url, title=None, content=None):
+    def save_page(self, page_url, title=None, content=None, dry_run=False):
         data = {}
         data['site'] = self.site
         data['page'] = page_url
@@ -69,11 +69,14 @@ class Wikidot():
         if content:
             data['content'] = content
 
-        self.proxy.pages.save_one(data)
-        if self.list_pages(page_url):
+        if dry_run:
             return True
         else:
-            return False
+            self.proxy.pages.save_one(data)
+            if self.list_pages(page_url):
+                return True
+            else:
+                return False
 
     def get_page(self, page_url):
         try:
