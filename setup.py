@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
     name='h4-scripts',
-    version='0.9.0',
+    version='0.9.1',
     description='Hacking Thursday automation scripts.',
     license='MIT',
     url='https://github.com/hacking-thursday/h4-scripts',
