@@ -18,3 +18,6 @@
 
 # 安裝第三方函式庫
     $ make setup
+
+# 安裝 h4-script 進系統或 virtualenv
+    $ make install
