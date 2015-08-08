@@ -30,8 +30,6 @@ setup: # 安裝 dependencies
 	test -d _logs || mkdir _logs
 	test -d 3rd || mkdir 3rd
 	test -d 3rd/wikidot/ || ( cd 3rd; git clone git://github.com/gabrys/wikidot.git; cd wikidot/; git apply ../0001-php-syntax-deprecated.patch )
-	sudo pip install -r requirements.txt
-	sudo apt-get install -y tidy
 
 install:  # 安裝 h4-scripts
 	$(PY) setup.py install
