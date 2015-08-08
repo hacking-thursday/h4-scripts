@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from Config import Config
-from Wikidot import Wikidot
+import os
+from h4_scripts.Config import Config
+from h4_scripts.Wikidot import Wikidot
+
+DRY_RUN = True if os.environ.get('DRY_RUN') == 'True' else False
 
 config = Config()
 user_app = config['wikidot']['wikidot_api_user']
@@ -32,7 +35,7 @@ def test_set_site():
 
 
 def test_save_page():
-    assert wikidot.save_page(page_url, title, content)
+    assert wikidot.save_page(page_url, title, content, dry_run=DRY_RUN)
 
 
 def test_get_page():

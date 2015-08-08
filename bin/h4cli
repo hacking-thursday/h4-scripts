@@ -9,16 +9,15 @@
 
 from __future__ import print_function
 import argparse
-import common
-from common import *
-from lib.Config import Config
-from lib.Wikidot import Wikidot
-from lib.Gmail import Gmail
-from lib.PTT import PTT
-from lib.Logger import Logger
-from lib.Facebook import Facebook, Graph
-from lib.GoogleSpreadsheetAPI import Spreadsheet
-from lib.AuthorData import AuthorData
+from h4_scripts import common
+from h4_scripts.Config import Config
+from h4_scripts.Wikidot import Wikidot
+from h4_scripts.Gmail import Gmail
+from h4_scripts.PTT import PTT
+from h4_scripts.Logger import Logger
+from h4_scripts.Facebook import Facebook, Graph
+from h4_scripts.GoogleSpreadsheetAPI import Spreadsheet
+from h4_scripts.AuthorData import AuthorData
 
 
 def cmd_search(args):
@@ -33,12 +32,12 @@ def cmd_search(args):
     spr = Spreadsheet(googledoc_user, googledoc_pass, spreadsheet)
     result = spr.getWorksheetCellArray(worksheet)
     for keyword in args.params:
-            result = search_userdata(result, keyword)
+            result = common.search_userdata(result, keyword)
 
     for k in result.keys():
             row = result[k]
             print("=" * 60)
-            show_userdata(row)
+            common.show_userdata(row)
 
 
 def cmd_invite(args):
@@ -87,7 +86,7 @@ def cmd_invite(args):
             graph = Graph(token)
 
             if args.dryrun is not True:
-                event_id = graph.createEvent(facebook_group_id, subject, description, start_time, end_time)
+                event_id = graph.createEvent(facebook_group_id, subject, description, start_time, end_time, dry_run=args.dryrun)
                 if event_id:
                     logger.info('http://www.facebook.com/events/' + event_id)
                 else:
@@ -109,7 +108,7 @@ def cmd_invite(args):
             logger.info('enter %s board' % board)
 
         if args.dryrun is not True:
-            if ptt.post(subject, TXT):
+            if ptt.post(subject, TXT, dry_run=args.dryrun):
                 logger.info('post article')
         else:
             print("dryrun 模式，未貼文")
@@ -120,12 +119,12 @@ def cmd_invite(args):
     if args.use_email:
         username = config.Get('gmail', 'username')
         password = config.Get('gmail', 'password')
-        Sender = config.Get('hackingthursday', 'who')  # 值日生的 email
-        Reciver = config.Get('hackingthursday', 'email_address')
+        sender = config.Get('hackingthursday', 'who')  # 值日生的 email
+        receiver = config.Get('hackingthursday', 'email_address')  # Google Groups 群組的 email
 
         gmail.login(username, password)
         if args.dryrun is not True:
-            gmail.send(Sender, Reciver, Subject, Txt, Html)
+            gmail.send(sender, receiver, subject, Txt, Html, dry_run=args.dryrun)
         else:
             print("dryrun 模式，未寄出")
 
@@ -138,33 +137,32 @@ def cmd_notify(args):
 
         username = config.Get('gmail', 'username')
         password = config.Get('gmail', 'password')
-        Sender = config.Get('hackingthursday', 'who')  # 值日生的 email
-        # Receiver = config.Get('hackingthursday', 'email_address')
-        Receiver = config.Get('hackingthursday', 'who')  # 值日生的 email
-        Subject = "HackingThursday 聚會手記 (%s)" % PartyDate
+        sender = config.Get('hackingthursday', 'who')  # 值日生的 email
+        receiver = config.Get('hackingthursday', 'email_address')  # Google Groups 群組的 email
+        subject = "HackingThursday 聚會手記 (%s)" % PartyDate
 
         WikidotNoteURL = "http://www.hackingthursday.org/" + PartyDate
         MailContentHeader = common.mail_content_header
         MailContentFooter = common.mail_content_footer
 
-        Html = """
-        <html>
-            <head>
-                <title>HackingThursday</title>
-            </head>
-            <body>
-            <pre>""" + MailContentHeader + """</pre>
-            """ + WikidotNoteURL + """
-            <pre>""" + MailContentFooter + """</pre>
-            </body>
-        </html>
-        """
+        Html = """\
+<html>
+    <head>
+        <title>HackingThursday</title>
+    </head>
+    <body>
+    <pre>%s</pre>
+    %s
+    <pre>%s</pre>
+    </body>
+</html>
+""" % (MailContentHeader, WikidotNoteURL, MailContentFooter)
 
-        Txt = common.html2txt(Html)
+        Txt = common.html2txt(Html.decode('utf-8'))
 
         gmail.login(username, password)
         if args.dryrun is not True:
-            gmail.send(Sender, Receiver, Subject, Txt, Html)
+            gmail.send(sender, receiver, subject, Txt, Html, dry_run=args.dryrun)
         else:
             print("dryrun 模式，未寄出")
 
@@ -239,7 +237,7 @@ def cmd_wikidot(args):
         nav_top_page = wikidot.get_page(nav_page)
         nav_top_content = nav_top_page["content"].encode('utf8')
 
-        new_nav_top_content = find_keyword_and_insert_content(nav_top_content, keyword_beg, keyword_end, page_of_index)
+        new_nav_top_content = common.find_keyword_and_insert_content(nav_top_content, keyword_beg, keyword_end, page_of_index)
 
         print(new_nav_top_content)
         if args.dryrun is not True:
@@ -251,9 +249,9 @@ def cmd_wikidot(args):
         user_app = config.Get('wikidot', 'wikidot_api_user')
         key = config.Get('wikidot', 'wikidot_api_key')
 
-        tomorrow = getThursday(0)
-        lastweek = getThursday(-1)
-        nextweek = getThursday(1)
+        tomorrow = common.getThursday(0)
+        lastweek = common.getThursday(-1)
+        nextweek = common.getThursday(1)
         page = tomorrow
         title = tomorrow + ' 聚會手記'
         content = '''
@@ -289,7 +287,7 @@ def cmd_wikidot(args):
 
         foundReturn = nav_top_content.find(tomorrow)
         if foundReturn < 0:
-            new_nav_top_content = find_keyword_and_insert_content(nav_top_content, target_keyword, None, note_page_link)
+            new_nav_top_content = common.find_keyword_and_insert_content(nav_top_content, target_keyword, None, note_page_link)
 
             if args.dryrun is not True:
                 if wikidot.save_page(top_bar_page, top_bar_title, new_nav_top_content):
@@ -317,7 +315,7 @@ def cmd_wikidot(args):
         ad_obj = AuthorData()
 
         user_mapping_pre = spr.getWorksheetCellArray(worksheet)
-        ad_obj.user_mapping = convert_spreadsheet_to_userdata(user_mapping_pre)
+        ad_obj.user_mapping = common.convert_spreadsheet_to_userdata(user_mapping_pre)
 
         # 列出要處理的頁面
         user_pages = wikidot.list_user_pages()
@@ -357,7 +355,7 @@ def cmd_wikidot(args):
         for author in authors:
             page_of_author = ad_obj.process_page_per_author(author)
             page = "user:" + author.lower()
-            user_head, page_of_author_orig = page_split_by_keyword(wikidot.get_page_content(page), "[[toc]]")
+            user_head, page_of_author_orig = common.page_split_by_keyword(wikidot.get_page_content(page), "[[toc]]")
             cnt = ad_obj.get_author_cnt(author.lower())
 
             if page_of_author == page_of_author_orig or cnt <= 0:
@@ -365,7 +363,7 @@ def cmd_wikidot(args):
                 continue
 
             # 顯示差異的部分
-            out = get_diff_output_between_two_string(page_of_author_orig, page_of_author)
+            out = common.get_diff_output_between_two_string(page_of_author_orig, page_of_author)
             print("==== %s 新舊差異的部分 ===========" % author)
             print(out)
             print("==================================")
@@ -439,7 +437,7 @@ def cmd_wikidot(args):
         nav_top_page = wikidot.get_page(nav_page)
         nav_top_content = nav_top_page["content"].encode('utf8')
 
-        new_nav_top_content = find_keyword_and_insert_content(nav_top_content, keyword_beg, keyword_end, page_of_index)
+        new_nav_top_content = common.find_keyword_and_insert_content(nav_top_content, keyword_beg, keyword_end, page_of_index)
         if dryrun is not True:
             wikidot.save_page(nav_page, content=new_nav_top_content)
 
@@ -461,7 +459,7 @@ def cmd_wikidot(args):
             if notify_enable:
                     print('To nofity: "%s" <%s> , %s/user:%s ' % (rel_name, email, root_url, url_name))
                     if dryrun is not True:
-                        send_notify_mail(author, ad_obj, googledoc_user, root_url)
+                        common.send_notify_mail(author, ad_obj, googledoc_user, root_url)
             else:
                     print('  skiping: "%s" <%s> , %s/user:%s ' % (rel_name, email, root_url, url_name))
 

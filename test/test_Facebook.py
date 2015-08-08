@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import common
-from Config import Config
-from Facebook import Facebook
+from h4_scripts.Config import Config
+from h4_scripts.Facebook import Facebook
 
 username = Config()['facebook']['username']
 password = Config()['facebook']['password']
