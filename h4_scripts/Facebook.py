@@ -24,9 +24,9 @@ GRAPH_URL = 'https://graph.facebook.com'
 
 class Facebook():
     def __init__(self):
-        cj = cookielib.CookieJar()
+        self.cj = cookielib.CookieJar()
 
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.cj))
         opener.addheaders = [('Host', 'www.facebook.com'),
                              ('User-Agent', 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.17 Safari/537.36'),
                              ('Referer', 'https://www.facebook.com/')]
@@ -42,6 +42,10 @@ class Facebook():
 
         usock = self.opener.open(url, data)
         line = usock.read()
+
+        # print "the cookies are: "
+        # for cookie in self.cj:
+        #     print cookie
 
         # print line
 
