@@ -6,11 +6,11 @@ from h4_scripts.Gmail import Gmail
 
 DRY_RUN = True if os.environ.get('DRY_RUN') == 'True' else False
 
-username = Config()['gmail']['username']
-password = Config()['gmail']['password']
+username = os.environ['GMAIL_USERNAME'] if os.environ.get('GMAIL_USERNAME') else Config()['gmail']['username']
+password = os.environ['GMAIL_USERNAME'] if os.environ.get('GMAIL_USERNAME') else Config()['gmail']['password']
 
-subject = Config()['test']['subject']
-content = Config()['test']['html_content']
+subject = os.environ['TEST_SUBJECT'] if os.environ.get('TEST_SUBJECT') else Config()['test']['subject']
+content = os.environ['TEST_HTML_CONTENT'] if os.environ.get('TEST_HTML_CONTENT') else Config()['test']['html_content']
 
 client = Gmail()
 

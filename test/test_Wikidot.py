@@ -7,8 +7,8 @@ from h4_scripts.Wikidot import Wikidot
 DRY_RUN = True if os.environ.get('DRY_RUN') == 'True' else False
 
 config = Config()
-user_app = config['wikidot']['wikidot_api_user']
-key = config['wikidot']['wikidot_api_key']
+user_app = os.environ['WIKIDOT_WIKIDOT_API_USER'] if os.environ.get('WIKIDOT_WIKIDOT_API_USER') else config['wikidot']['wikidot_api_user']
+key = os.environ['WIKIDOT_WIKIDOT_API_KEY'] if os.environ.get('WIKIDOT_WIKIDOT_API_KEY') else config['wikidot']['wikidot_api_key']
 
 site = 'hackingthursday'
 page_url = 'test'
@@ -39,11 +39,13 @@ def test_save_page():
 
 
 def test_get_page():
-    assert wikidot.get_page(page_url)
+    if not DRY_RUN:
+        assert wikidot.get_page(page_url)
 
 
 def test_get_pages_meta():
-    assert wikidot.get_pages_meta(page_url)
+    if not DRY_RUN:
+        assert wikidot.get_pages_meta(page_url)
 
 
 def test_list_pages():
