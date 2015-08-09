@@ -6,12 +6,12 @@ from h4_scripts.PTT import PTT
 
 DRY_RUN = True if os.environ.get('DRY_RUN') == 'True' else False
 
-id = Config()['bbs']['user']
-password = Config()['bbs']['pass']
+id = os.environ['BBS_USER'] if os.environ.get('BBS_USER') else Config()['bbs']['user']
+password = os.environ['BBS_PASS'] if os.environ.get('BBS_PASS') else Config()['bbs']['pass']
 
 board = 'Test'  # 討論版名稱
-subject = Config()['test']['subject']
-content = Config()['test']['content']
+subject = os.environ['TEST_SUBJECT'] if os.environ.get('TEST_SUBJECT') else Config()['test']['subject']
+content = os.environ['TEST_HTML_CONTENT'] if os.environ.get('TEST_HTML_CONTENT') else Config()['test']['content']
 
 
 client = PTT()
