@@ -24,24 +24,48 @@ GRAPH_URL = 'https://graph.facebook.com'
 
 class Facebook():
     def __init__(self):
-        cj = cookielib.CookieJar()
+        self.cj = cookielib.CookieJar()
 
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.cj))
         opener.addheaders = [('Host', 'www.facebook.com'),
                              ('User-Agent', 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.17 Safari/537.36'),
                              ('Referer', 'https://www.facebook.com/')]
 
         self.opener = opener
 
-        usock = self.opener.open('http://www.facebook.com')
+        # usock = self.opener.open('http://www.facebook.com')
+        usock = self.opener.open('https://m.facebook.com/login.php')
 
     def login(self, email, password):
-        url = 'https://www.facebook.com/login.php?login_attempt=1'
+        # url = 'https://www.facebook.com/login.php?login_attempt=1'
+        url = 'https://m.facebook.com/login.php'
 
-        data = "locale=en_US&lsd=%s&lgnrnd=215019_4mpx&lgnjs=1400475025&email=%s&pass=%s" % ('AVoy-05c', email, password)
+        # data = "locale=en_US&lsd=%s&lgnrnd=215019_4mpx&lgnjs=1400475025&email=%s&pass=%s" % ('AVoy-05c', email, password)
+        data = urllib.urlencode({
+            'lsd': 'AVrDL7ho',
+            'display': '',
+            'enable_profile_selector': '',
+            'legacy_return': '1',
+            'profile_selector_ids': '',
+            'trynum': '1',
+            'timezone': '',
+            'lgndim': '',
+            'lgnrnd': '175413_BJ5y',
+            'lgnjs': 'n',
+            'email': email,
+            'pass': password,
+            'default_persistent': '0',
+            'login': 'Log+In',
+            'li': 'v7PGVRnZ8eCBpPdGw4k-3B3D',
+            'm_ts': '',
+            })
 
         usock = self.opener.open(url, data)
         line = usock.read()
+
+        # print "the cookies are: "
+        # for cookie in self.cj:
+        #     print cookie
 
         # print line
 
