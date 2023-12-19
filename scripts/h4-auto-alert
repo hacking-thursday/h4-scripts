@@ -25,7 +25,7 @@ main() {
 		cat <<-"EOD" | sed -e "s/THIS_THURSDAY/$(date --iso-8601 -dthis-thursday)/g" >$tmpd/req01_body.dat
 			[提醒通知] 本週四(THIS_THURSDAY)晚上 H4 一樣有聚會喔。相關資訊如下:
 			- 線上共筆: https://pad.hackingthursday.org
-			- 聚會通告: https://www.hackingthursday.org/invite
+			- 聚會通告: https://www.hackingthursday.org/#%E8%81%9A%E6%9C%83%E5%9C%B0%E9%BB%9E-details
 		EOD
 
 		curl -s --max-time $TIMEOUT \
